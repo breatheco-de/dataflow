@@ -1,44 +1,17 @@
-# alpine has very much issues with python
-FROM python:slim
+FROM gitpod/workspace-postgres
 
-EXPOSE 8000
+RUN sudo apt-get update \
+    && sudo apt-get update \
+    && sudo apt-get install -y redis-server \
+    && sudo apt-get clean \
+    && sudo rm -rf /var/cache/apt/* /var/lib/apt/lists/* /tmp/*
 
-RUN echo breathecode > /etc/hostname
-RUN apt-get update && \
-    apt-get install fish curl git sudo tmux vim nano -y && \
-    apt-get clean && \
-    rm -rf /var/cache/apt/* /var/lib/apt/lists/* /tmp/*
+RUN pyenv update && pyenv install 3.10.5 && pyenv global 3.10.5
+RUN pip install pipenv yapf
 
-WORKDIR /tmp
-
-RUN curl -L https://get.oh-my.fish > install && \
-    fish install --noninteractive --yes && \
-    rm install
-
-RUN useradd shell
-RUN echo 'shell     ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
-RUN usermod -s /usr/bin/fish root
-RUN usermod -s /usr/bin/fish shell
-
-USER shell
-WORKDIR /home/shell/apiv2
-
-ENV PYTHONUNBUFFERED=1
-ENV PATH="${PATH}:/home/shell/.local/bin"
-ENV DOCKER=1
-
-RUN curl -L https://get.oh-my.fish > install && \
-    fish install --noninteractive --yes && \
-    rm install
-
-COPY Pipfile Pipfile
-COPY Pipfile.lock Pipfile.lock
-COPY scripts scripts
-COPY .git/ .git/
-RUN touch .env
-
-RUN python -m scripts.install && \
-    rm .env
-
-COPY . .
-CMD python -m scripts.docker_entrypoint_dev
+# remove PIP_USER environment
+USER gitpod
+RUN if ! grep -q "export PIP_USER=no" "$HOME/.bashrc"; then printf '%s\n' "export PIP_USER=no" >> "$HOME/.bashrc"; fi
+RUN echo "" >> $HOME/.bashrc
+RUN echo "unset DATABASE_URL" >> $HOME/.bashrc
+RUN echo "export DATABASE_URL" >> $HOME/.bashrc
