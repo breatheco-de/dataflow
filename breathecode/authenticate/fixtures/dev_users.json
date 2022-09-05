@@ -1,0 +1,20 @@
+[
+    {
+        "model": "auth.user",
+        "pk": 1,
+        "fields": {
+            "password": "pbkdf2_sha256$260000$8a48AXNxuvYzQQydm6PxD3$gb7KipoXPtC1Lc18JHuiM+L9oarBQvX/Q8/wYm9Yjik=",
+            "last_login": "2021-05-08T00:15:13.286Z",
+            "is_superuser": true,
+            "username": "aalejo@gmail.com",
+            "first_name": "",
+            "last_name": "",
+            "email": "aalejo@gmail.com",
+            "is_staff": true,
+            "is_active": true,
+            "date_joined": "2021-02-26T05:34:48.156Z",
+            "groups": [],
+            "user_permissions": []
+        }
+    }
+]
