@@ -5,5 +5,6 @@ from .datastore import *
 from .function_v1 import *
 from .function_v2 import *
 from .storage import *
+from .bigquery import *
 from .file import *
 from .credentials import *

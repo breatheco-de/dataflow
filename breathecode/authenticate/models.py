@@ -8,6 +8,9 @@ from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone
 from datetime import datetime
 
+LOGIN_TOKEN_LIFETIME = timezone.timedelta(days=1)
+TEMPORAL_TOKEN_LIFETIME = timezone.timedelta(minutes=10)
+
 
 class UserProxy(User):
 
