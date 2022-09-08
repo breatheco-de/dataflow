@@ -20,10 +20,6 @@ from django.conf import settings as global_settings
 from django.contrib.messages import constants as messages
 from django.utils.log import DEFAULT_LOGGING
 
-from dotenv import load_dotenv
-
-load_dotenv(dirname(abspath(__file__)) + '/../.env')
-
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -35,7 +31,7 @@ ENVIRONMENT = os.environ.get('ENV')
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '5ar3h@ha%y*dc72z=8-ju7@4xqm0o59*@k*c2i=xacmy2r=%4a'
+SECRET_KEY = os.environ.get('SECRET_KEY', '33434432ADSr#$13')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = (ENVIRONMENT == 'development' or ENVIRONMENT == 'test')
