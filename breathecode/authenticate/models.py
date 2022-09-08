@@ -2,10 +2,18 @@ from django.db import models
 import rest_framework.authtoken.models
 from django.conf import settings
 from django.contrib.auth.models import User
+from rest_framework.decorators import api_view, permission_classes
 from datetime import timedelta
 from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone
 from datetime import datetime
+
+
+class UserProxy(User):
+
+    class Meta:
+        proxy = True
+
 
 class Token(rest_framework.authtoken.models.Token):
     '''
@@ -104,3 +112,30 @@ class Token(rest_framework.authtoken.models.Token):
     class Meta:
         # ensure user and name are unique
         unique_together = (('user', 'key'), )
+
+
+class CredentialsGithub(models.Model):
+    github_id = models.IntegerField(primary_key=True)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, blank=True)
+
+    token = models.CharField(max_length=255)
+    email = models.CharField(blank=False, unique=True, max_length=150)
+    avatar_url = models.CharField(max_length=255, blank=True, null=True)
+    name = models.CharField(max_length=150, blank=True, null=True)
+    username = models.CharField(max_length=35, blank=True, null=True)
+    blog = models.CharField(max_length=150, blank=True, null=True)
+    bio = models.CharField(max_length=255, blank=True, null=True)
+    company = models.CharField(max_length=150, blank=True, null=True)
+    twitter_username = models.CharField(max_length=50, blank=True, null=True)
+
+    created_at = models.DateTimeField(auto_now_add=True, editable=False)
+    updated_at = models.DateTimeField(auto_now=True, editable=False)
+
+    def __str__(self):
+        return f'{self.email} ({self.user.id})'
+
+    def save(self, *args, **kwargs):
+        if self.email:
+            self.email = self.email.lower()
+
+        return super().save(*args, **kwargs)

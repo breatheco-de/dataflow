@@ -25,7 +25,7 @@ class GenerateLookupsMixin(APIException):
             value = value.split(',')
         return value
 
-    def __bulk_generator__(self, request, fields: list[str], pk=False, many=False):
+    def __bulk_generator__(self, request, fields: list, pk=False, many=False):
         return [(self.__field_name__(field, pk=pk, many=many), self.__field_value__(request, field,
                                                                                     many=many))
                 for field in fields if self.__field_exists__(request, field)]

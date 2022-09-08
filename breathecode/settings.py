@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 
 import os
 from pathlib import Path
+from os.path import dirname, abspath
 import re
 import ssl
 import django_heroku
@@ -18,6 +19,10 @@ import logging
 from django.conf import settings as global_settings
 from django.contrib.messages import constants as messages
 from django.utils.log import DEFAULT_LOGGING
+
+from dotenv import load_dotenv
+
+load_dotenv(dirname(abspath(__file__)) + '/../.env')
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -70,7 +75,7 @@ REST_FRAMEWORK = {
     'v1',
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'breathecode.authenticate.authentication.ExpiringTokenAuthentication',
-        # 'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         # 'rest_framework.permissions.AllowAny',
