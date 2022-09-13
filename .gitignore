@@ -172,3 +172,6 @@ dump.rdb
 # pdm
 .pdm.toml
 /experiments.py
+buffer
+buffer/*
+!buffer/.gitkeep

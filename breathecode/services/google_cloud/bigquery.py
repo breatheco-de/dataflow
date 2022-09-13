@@ -66,7 +66,7 @@ class BigQuery:
         table = self.client.dataset(self.dataset).table(entity_name)
         return self.client.list_rows(table).to_dataframe()
 
-    def save_dataframe_to_table(self, df, entity_name, replace=False):
+    def save_dataframe_to_table(self, df, entity_name, replace=False, quoted_newlines=True):
 
         file = Storage().file(self.bucket_name, f'{entity_name}.csv')
         file.upload(df.to_csv(), content_type='text/csv')
@@ -81,7 +81,7 @@ class BigQuery:
             autodetect=True,
             skip_leading_rows=1,
             create_disposition='CREATE_IF_NEEDED',
-            allow_quoted_newlines=True,
+            allow_quoted_newlines=quoted_newlines,
             # The source format defaults to CSV, so the line below is optional.
             source_format=bigquery.SourceFormat.CSV,
         )

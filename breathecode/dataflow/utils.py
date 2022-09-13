@@ -1,6 +1,18 @@
 import os
 import psycopg2 as pg
 import pandas.io.sql as psql
+import pandas as pd
+
+
+class PipelineException(Exception):
+    pipeline_slug = None
+    failed_transformation = None
+    stdout = None
+
+    def __init__(self, pipeline, transformation):
+        self.pipeline_slug = pipeline.slug
+        self.failed_transformation = transformation.slug
+        self.stdout = transformation.stdout
 
 
 class HerokuDB(object):
@@ -28,8 +40,11 @@ class RemoteCSV(object):
             raise Exception(
                 'Please specify file path on google datastore for your CSV source on the connection string input'
             )
-        self.connection = connection_string
+        if 'gs://' in connection_string:
+            self.connection = connection_string
+        else:
+            self.connection = 'gs://breathecode-dataflow/' + connection_string
 
     def get_dataframe_from_table(self, entity_name):
-        df = psql.read_csv(self.connection)
+        df = pd.read_csv(self.connection)
         return df

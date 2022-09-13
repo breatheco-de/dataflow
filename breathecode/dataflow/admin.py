@@ -1,12 +1,14 @@
-import os, ast, logging
+import os, ast, logging, traceback
 from django.contrib import admin
 from django import forms
 from breathecode.utils import getLogger
 from django.utils import timezone
 from django.contrib import messages
-from .models import Pipeline, Transformation, Project, DataSource
-from .actions import pull_project_from_github, run_pipeline
+from .models import Pipeline, Transformation, Project, DataSource, PipelineExecution
+from .actions import pull_project_from_github
+from .tasks import async_run_pipeline
 from django.utils.html import format_html
+from .utils import PipelineException
 
 logger = getLogger(__name__)
 
@@ -47,12 +49,12 @@ class ProjectAdmin(admin.ModelAdmin):
     actions = [pull_github_project]
 
 
-def execute_now(modeladmin, request, queryset):
+def execute_async(modeladmin, request, queryset):
     pipelines = queryset.all()
 
     for p in pipelines:
         try:
-            run_pipeline(p)
+            async_run_pipeline.delay(p.slug)
         except Exception as e:
             logger.exception(e)
             messages.add_message(request, messages.ERROR, str(e))
@@ -62,7 +64,7 @@ def execute_now(modeladmin, request, queryset):
 class PipelineAdmin(admin.ModelAdmin):
     # form = CustomForm
     list_display = ('slug', 'source_from', 'source_to', 'current_status')
-    actions = [execute_now]
+    actions = [execute_async]
     list_filter = ['status', 'project__title']
 
     # actions=[pull_github_project]
@@ -71,6 +73,7 @@ class PipelineAdmin(admin.ModelAdmin):
         colors = {
             'OPERATIONAL': 'bg-success',
             'CRITICAL': 'bg-error',
+            'LOADING': 'bg-warning',
             'FATAL': 'bg-error',  # important: this status was deprecated and deleted!
             'MINOR': 'bg-warning',
         }
@@ -84,7 +87,7 @@ class PipelineAdmin(admin.ModelAdmin):
 @admin.register(Transformation)
 class TransformationAdmin(admin.ModelAdmin):
     # form = CustomForm
-    list_display = ('slug', 'current_status', 'pipeline', 'last_run', 'last_sync_at')
+    list_display = ('id', 'slug', 'order', 'current_status', 'pipeline', 'last_run', 'last_sync_at')
     # actions = [run_single_script]
     list_filter = ['status', 'pipeline__slug', 'pipeline__project__slug']
 
@@ -94,6 +97,24 @@ class TransformationAdmin(admin.ModelAdmin):
         colors = {
             'OPERATIONAL': 'bg-success',
             'CRITICAL': 'bg-error',
+            'LOADING': 'bg-warning',
+            'FATAL': 'bg-error',  # important: this status was deprecated and deleted!
+            'MINOR': 'bg-warning',
+        }
+        return format_html(f"<span class='badge {colors[obj.status]}'>{obj.status}</span>")
+
+
+@admin.register(PipelineExecution)
+class PipelineExecutionAdmin(admin.ModelAdmin):
+    # form = CustomForm
+    list_display = ('id', 'pipeline', 'current_status', 'started_at')
+    list_filter = ['status', 'pipeline__slug', 'pipeline__project__slug']
+
+    def current_status(self, obj):
+        colors = {
+            'OPERATIONAL': 'bg-success',
+            'CRITICAL': 'bg-error',
+            'LOADING': 'bg-warning',
             'FATAL': 'bg-error',  # important: this status was deprecated and deleted!
             'MINOR': 'bg-warning',
         }
