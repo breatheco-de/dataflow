@@ -81,6 +81,7 @@ class BigQuery:
             autodetect=True,
             skip_leading_rows=1,
             create_disposition='CREATE_IF_NEEDED',
+            allow_quoted_newlines=True,
             # The source format defaults to CSV, so the line below is optional.
             source_format=bigquery.SourceFormat.CSV,
         )
