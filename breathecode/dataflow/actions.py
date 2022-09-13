@@ -6,7 +6,7 @@ from breathecode.authenticate.models import CredentialsGithub
 from google.cloud.exceptions import NotFound
 from breathecode.services.google_cloud.bigquery import BigQuery
 from .models import PipelineExecution, Pipeline, Project, Transformation
-from .utils import HerokuDB
+from .utils import HerokuDB, RemoteCSV
 
 
 def get_url_info(url: str):
@@ -101,6 +101,8 @@ def get_source(source):
         return BigQuery(dataset=source.database)
     if source.source_type == 'heroku':
         return HerokuDB(connection_string=source.connection_string)
+    if source.source_type == 'csv':
+        return RemoteCSV(connection_string=source.connection_string)
 
     raise Exception(f'Invalid pipeline source type {source.source_type}')
 

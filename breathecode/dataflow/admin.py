@@ -26,8 +26,8 @@ class DataSourceForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(DataSourceForm, self).__init__(*args, **kwargs)
-        self.fields['source_type'] = forms.ChoiceField(choices=[('heroku', 'Heroku'), ('bigquery',
-                                                                                       'BigQuery')])
+        self.fields['source_type'] = forms.ChoiceField(
+            choices=[('heroku', 'Heroku'), ('bigquery', 'BigQuery'), ('csv', 'CSV File on datastore')])
 
 
 @admin.register(DataSource)

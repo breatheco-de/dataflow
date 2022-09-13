@@ -17,3 +17,19 @@ class HerokuDB(object):
     def get_dataframe_from_table(self, entity_name):
         df = psql.read_sql(f'SELECT * FROM {entity_name}', self.connection)
         return df
+
+
+class RemoteCSV(object):
+    connection = None
+
+    def __init__(self, connection_string=None):
+
+        if connection_string is None:
+            raise Exception(
+                'Please specify file path on google datastore for your CSV source on the connection string input'
+            )
+        self.connection = connection_string
+
+    def get_dataframe_from_table(self, entity_name):
+        df = psql.read_csv(self.connection)
+        return df

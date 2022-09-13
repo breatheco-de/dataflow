@@ -59,7 +59,7 @@ class DataSource(models.Model):
         max_length=100,
         help_text='If source is a destination, we will automatically prepend pipeline slug to the table name')
     database = models.CharField(max_length=250,
-                                help_text='Will be ignored if heroku',
+                                help_text='Ignored if Heroku or CSV.',
                                 blank=True,
                                 null=True,
                                 default=None)
@@ -67,7 +67,7 @@ class DataSource(models.Model):
                                          blank=True,
                                          null=True,
                                          default=None,
-                                         help_text='Will be ignored if Google BigQuery')
+                                         help_text='Ignored if Google BigQuery. File path if CSV.')
 
     def __str__(self):
         return f'{self.title}: {self.source_type}.{self.table_name}'
