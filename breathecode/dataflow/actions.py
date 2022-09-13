@@ -126,6 +126,7 @@ def run_pipeline(pipeline):
 
     for t in transformations:
         df = run_transformation(t, df)
+        print(df.shape)
 
     try:
         TO_DB.save_dataframe_to_table(df, table_name, replace=pipeline.replace_destination_table)
