@@ -5,7 +5,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import models as DM
 from django.db.models import Q, F
 from ...models import Pipeline
-from ...actions import run_pipeline
+from ...tasks import async_run_pipeline
 
 
 class BaseSQL(object):
