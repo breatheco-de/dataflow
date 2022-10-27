@@ -30,6 +30,9 @@ class Project(models.Model):
     config = models.JSONField(blank=True, null=True, default=None)
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
 
+    def __str__(self):
+        return self.title
+
     def get_config(self, pipeline_slug=None):
 
         if 'pipelines' not in self.config:
