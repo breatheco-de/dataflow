@@ -75,7 +75,12 @@ class DataSource(models.Model):
     quoted_newlines = models.BooleanField(default=True)
     table_name = models.CharField(
         max_length=100,
-        help_text='If source is a destination, we will automatically prepend pipeline slug to the table name')
+        null=True,
+        blank=True,
+        default=None,
+        help_text=
+        'Ignored for CSV. If source is a destination, we will automatically prepend pipeline slug to the table name'
+    )
     database = models.CharField(max_length=250,
                                 help_text='Ignored if Heroku or CSV.',
                                 blank=True,
