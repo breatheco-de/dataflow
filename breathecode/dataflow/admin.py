@@ -63,7 +63,7 @@ def execute_async(modeladmin, request, queryset):
 @admin.register(Pipeline)
 class PipelineAdmin(admin.ModelAdmin):
     # form = CustomForm
-    list_display = ('slug', 'source_from', 'source_to', 'current_status')
+    list_display = ('slug', 'sources', 'source_to', 'current_status')
     actions = [execute_async]
     list_filter = ['status', 'project__title']
 
@@ -82,6 +82,9 @@ class PipelineAdmin(admin.ModelAdmin):
             return format_html(f"<span class='badge bc-warning'> ⏸ PAUSED</span>")
 
         return format_html(f"<span class='badge {colors[obj.status]}'>{obj.status}</span>")
+
+    def sources(self, obj):
+        return ', '.join([str(source.slug) + f' ({source.id})' for source in obj.source_from.all()])
 
 
 @admin.register(Transformation)

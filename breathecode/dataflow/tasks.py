@@ -35,6 +35,8 @@ def run_transformation(transformation, execution):
         transformation.stdout = f'Script not found or its body is empty: {transformation.slug}'
         transformation.save()
         return False
+    else:
+        content = 'import pandas as pd\n' + content
 
     with stdoutIO() as s:
         try:
@@ -42,9 +44,15 @@ def run_transformation(transformation, execution):
                 raise Exception(f'Transformation {transformation.slug} does not belong to any pipeline')
 
             input_vars = {}
-            content += f"""_df = pd.read_csv('{execution.buffer_url()}')
-print('Starting {transformation.slug}: input -> '+str(_df.shape))
-output = run(_df)
+
+            sources = transformation.pipeline.source_from.all()
+            content += 'dfs = [] \n'
+            for position in range(len(sources)):
+                content += f"dfs.append(pd.read_csv('{execution.buffer_url(position)}')) \n"
+
+            content += f"""
+print('Starting {transformation.slug}: with '+str(len(dfs))+' dataframes -> '+str(dfs[0].shape))
+output = run(*dfs)
 print('Ended {transformation.slug}: output -> '+str(output.shape))
 output.to_csv('{execution.buffer_url()}', index=False)\n
 """
@@ -139,16 +147,17 @@ def async_run_pipeline(self, pipeline_slug):
     execution.save()
 
     try:
-        if pipeline.source_from is None or pipeline.source_to is None:
+        if pipeline.source_from.count() == 0 or pipeline.source_to is None:
             raise Exception(f'Pipeline {pipeline.slug} does not have both sources defined')
 
         # Reset transformation status
         Transformation.objects.filter(pipeline__slug=pipeline.slug).update(status='LOADING')
 
-        FROM_DB = pipeline.source_from.get_source()
-        df = FROM_DB.get_dataframe_from_table(pipeline.source_from.table_name)
-        # add first csv to the buffer as input
-        execution.save_buffer_df(df)
+        pipe = pipeline.project.get_config(pipeline.slug)
+        for source_from in pipeline.source_from.all():
+            FROM_DB = source_from.get_source()
+            df = FROM_DB.get_dataframe_from_table(source_from.table_name)
+            execution.save_buffer_df(df, position=pipe['sources'].index(source_from.slug))
 
         # get transformations queue
         transformations = list(

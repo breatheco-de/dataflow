@@ -5,7 +5,7 @@ from django.utils import timezone
 from breathecode.authenticate.models import CredentialsGithub
 from google.cloud.exceptions import NotFound
 from breathecode.services.google_cloud.bigquery import BigQuery
-from .models import PipelineExecution, Pipeline, Project, Transformation
+from .models import PipelineExecution, Pipeline, Project, Transformation, DataSource
 from .utils import PipelineException, HerokuDB, RemoteCSV
 from .tasks import async_run_transformation
 
@@ -74,14 +74,40 @@ def pull_project_from_github(project):
         Transformation.objects.filter(pipeline__slug=pipelineObject.slug).exclude(
             slug__in=pipeline['transformations']).delete()
 
+        if 'sources' not in pipeline:
+            raise Exception(
+                f'Pipeline is missing sources property with the list and order on which the sources will be added to the transformations'
+            )
+        pipelineObject.source_from.clear()
+
+        for s in pipeline['sources']:
+            source = DataSource.objects.filter(slug=s).first()
+            if source is None:
+                raise Exception(
+                    f"Source with slug '{s}' not found on the database but was specified on the YML")
+
+            pipelineObject.source_from.add(source)
+
+        if 'destination' not in pipeline:
+            raise Exception(
+                f'Pipeline is missing destination property with the slug of the DataSource that will be used to save the pipeline output'
+            )
+        destination = DataSource.objects.filter(slug=pipeline['destination']).first()
+        if destination is None:
+            raise Exception(
+                f"Destination DataSource with slug '{s}' not found on the database but was specified on the pipeline YML"
+            )
+        pipelineObject.source_to = destination
+        pipelineObject.save()
+
         order = 0
         for t in pipeline['transformations']:
             order += 1
-            trans_url = f'transformations/{pipeline["slug"]}/{t.split(".")[0]}.py'
+            trans_url = f'pipelines/{pipeline["slug"]}/{t.split(".")[0]}.py'
             python_code = get_blob_content(repo, trans_url, branch=project.branch_name)
             if python_code is None:
                 raise Exception(
-                    f'Transformation file transformations/{pipeline["slug"]}/{t.split(".")[0]}.py not found')
+                    f'Transformation file pipelines/{pipeline["slug"]}/{t.split(".")[0]}.py not found')
 
             transObject = Transformation.objects.filter(slug=t.split('.')[0],
                                                         pipeline__slug=pipelineObject.slug).first()

@@ -2,6 +2,7 @@ import os
 import psycopg2 as pg
 import pandas.io.sql as psql
 import pandas as pd
+from breathecode.services.google_cloud.storage import Storage
 
 
 class PipelineException(Exception):
@@ -33,6 +34,7 @@ class HerokuDB(object):
 
 class RemoteCSV(object):
     connection = None
+    bucket_name = os.environ.get('GOOGLE_BUCKET_NAME', None)
 
     def __init__(self, connection_string=None):
 
@@ -43,8 +45,17 @@ class RemoteCSV(object):
         if 'gs://' in connection_string:
             self.connection = connection_string
         else:
-            self.connection = 'gs://breathecode-dataflow/' + connection_string
+            self.connection = 'gs://' + self.bucket_name + '/' + connection_string
 
     def get_dataframe_from_table(self, entity_name):
         df = pd.read_csv(self.connection)
         return df
+
+    def save_dataframe_to_table(self, df, entity_name, replace=False, quoted_newlines=False):
+
+        filename = os.path.basename(entity_name)
+        without_extension = os.path.splitext(filename)[0]
+
+        print('Saving to ', self.bucket_name, without_extension + '.csv')
+        file = Storage().file(self.bucket_name, without_extension + '.csv')
+        return file.upload(df.to_csv(), content_type='text/csv')

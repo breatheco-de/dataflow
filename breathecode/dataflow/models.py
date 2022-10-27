@@ -30,7 +30,7 @@ class Project(models.Model):
     config = models.JSONField(blank=True, null=True, default=None)
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
 
-    def get_config(self):
+    def get_config(self, pipeline_slug=None):
 
         if 'pipelines' not in self.config:
             raise Exception('Missing pipelines property on YML')
@@ -43,6 +43,8 @@ class Project(models.Model):
                 raise Exception('Project pipelines property must be a dictionary on the YML')
             if 'slug' not in pipeline:
                 raise Exception('Missing pipeline slug on the YML')
+            if 'sources' not in pipeline:
+                raise Exception('Missing sources list of slugs on the YML')
             if 'transformations' not in pipeline:
                 raise Exception(f'Pipline {pipeline["name"]} is missing transformations list on the YML')
             if not isinstance(pipeline['transformations'], list):
@@ -53,6 +55,12 @@ class Project(models.Model):
                 self.config['pipelines'][pipeline_index]['transformations'][index] = self.config['pipelines'][
                     pipeline_index]['transformations'][index].split('.')[0]
 
+        if pipeline_slug is not None:
+            for p in self.config['pipelines']:
+                if p['slug'] == pipeline_slug:
+                    return p
+            raise Exception(f'Pipeline {pipeline_slug} does not exist on the YML')
+
         return self.config
 
     def save_config(self, yml):
@@ -61,6 +69,7 @@ class Project(models.Model):
 
 
 class DataSource(models.Model):
+    slug = models.SlugField(null=True, default=None)
     title = models.CharField(max_length=100)
     source_type = models.CharField(max_length=100)
     quoted_newlines = models.BooleanField(default=True)
@@ -100,12 +109,7 @@ class Pipeline(models.Model):
                                     default=None,
                                     null=True,
                                     help_text='Comma separated list of emails')
-    source_from = models.ForeignKey(DataSource,
-                                    on_delete=models.CASCADE,
-                                    blank=True,
-                                    null=True,
-                                    default=None,
-                                    related_name='pipeline_from_set')
+    source_from = models.ManyToManyField(DataSource, blank=True, related_name='pipeline_from_set')
     source_to = models.ForeignKey(DataSource,
                                   on_delete=models.CASCADE,
                                   blank=True,
@@ -137,6 +141,10 @@ class Pipeline(models.Model):
     def destination_table_name(self):
         if self.source_to is None:
             raise Exception(f'Pipeline {self.slug} is missing source_to (destination)')
+
+        if self.source_to.source_type == 'csv' and self.source_to.connection_string is not None:
+            return self.source_to.connection_string
+
         return self.slug + '__' + self.source_to.table_name
 
 
@@ -157,16 +165,16 @@ class PipelineExecution(models.Model):
     def log_exception(self, e):
         self.stdout += '\n'.join(traceback.format_exception(None, e, e.__traceback__))
 
-    def buffer_url(self):
-        return './buffer/' + str(self.id) + self.pipeline.slug + '_buffer.csv'
+    def buffer_url(self, position=0):
+        return './buffer/' + str(self.id) + self.pipeline.slug + f'_buffer{position}.csv'
 
-    def get_buffer_df(self):
-        return pd.read_csv(self.buffer_url())
+    def get_buffer_df(self, position=0):
+        return pd.read_csv(self.buffer_url(position))
 
-    def save_buffer_df(self, df):
+    def save_buffer_df(self, df, position=0):
         if not os.path.exists('./buffer'):
             raise Exception('Directory "buffer" does not exists')
-        result = df.to_csv(self.buffer_url(), index=False)
+        result = df.to_csv(self.buffer_url(position), index=False)
         print('saved buffer')
 
 
