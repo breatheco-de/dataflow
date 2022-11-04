@@ -36,7 +36,7 @@ def run_transformation(transformation, execution):
         transformation.save()
         return False
     else:
-        content = 'import pandas as pd\n' + content
+        content = 'import inspect\nimport pandas as pd\n' + content
 
     with stdoutIO() as s:
         try:
@@ -52,7 +52,9 @@ def run_transformation(transformation, execution):
 
             content += f"""
 print('Starting {transformation.slug}: with '+str(len(dfs))+' dataframes -> '+str(dfs[0].shape))
-output = run(*dfs)
+
+args_spect = inspect.getfullargspec(run)
+output = run(*dfs[:len(args_spect.args)])
 print('Ended {transformation.slug}: output -> '+str(output.shape))
 output.to_csv('{execution.buffer_url()}', index=False)\n
 """
