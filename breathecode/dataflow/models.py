@@ -153,7 +153,7 @@ class Pipeline(models.Model):
         if self.source_to.source_type == 'csv' and self.source_to.connection_string is not None:
             return self.source_to.connection_string
 
-        return self.slug + '__' + self.source_to.table_name
+        return self.source_to.table_name
 
 
 class PipelineExecution(models.Model):
