@@ -95,7 +95,7 @@ def pull_project_from_github(project):
         destination = DataSource.objects.filter(slug=pipeline['destination']).first()
         if destination is None:
             raise Exception(
-                f"Destination DataSource with slug '{s}' not found on the database but was specified on the pipeline YML"
+                f"Destination DataSource with slug {pipeline['destination']} not found on the database but was specified on the pipeline YML"
             )
         pipelineObject.source_to = destination
         pipelineObject.save()
