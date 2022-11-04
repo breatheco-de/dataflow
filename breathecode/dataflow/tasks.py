@@ -36,7 +36,7 @@ def run_transformation(transformation, execution):
         transformation.save()
         return False
     else:
-        content = 'import inspect\nimport pandas as pd\n' + content
+        content = 'import inspect\nimport pandas as pd\n' + content + '\n'
 
     with stdoutIO() as s:
         try:
