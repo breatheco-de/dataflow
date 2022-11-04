@@ -88,11 +88,11 @@ def pull_project_from_github(project):
 
             pipelineObject.source_from.add(source)
 
-        if 'destination' not in pipeline:
+        if 'destination' not in pipeline or pipeline['destination'] == "" or not isinstance(pipeline['destination'], str):
             raise Exception(
-                f'Pipeline is missing destination property with the slug of the DataSource that will be used to save the pipeline output'
+                f'Pipeline is has invalid or missing destination property with the slug of the DataSource that will be used to save the pipeline output'
             )
-        destination = DataSource.objects.filter(slug=pipeline['destination']).first()
+        destination = DataSource.objects.filter(slug=pipeline['destination'].strip()).first()
         if destination is None:
             raise Exception(
                 f"Destination DataSource with slug {pipeline['destination']} not found on the database but was specified on the pipeline YML"
