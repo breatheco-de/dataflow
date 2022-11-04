@@ -82,7 +82,7 @@ class DataSource(models.Model):
         blank=True,
         default=None,
         help_text=
-        'Ignored for CSV. If source is a destination, we will automatically prepend pipeline slug to the table name'
+        'Ignored for CSV.'
     )
     database = models.CharField(max_length=250,
                                 help_text='Ignored if Heroku or CSV.',
