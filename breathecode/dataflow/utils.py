@@ -58,4 +58,4 @@ class RemoteCSV(object):
 
         print('Saving to ', self.bucket_name, without_extension + '.csv')
         file = Storage().file(self.bucket_name, without_extension + '.csv')
-        return file.upload(df.to_csv(), content_type='text/csv')
+        return file.upload(df.to_csv(index=False), content_type='text/csv')
