@@ -10,8 +10,8 @@ logger = logging.getLogger(__name__)
 
 class BaseTaskWithRetry(Task):
     autoretry_for = (Exception, )
-    #                                           seconds
-    retry_kwargs = {'max_retries': 5, 'countdown': 60 * 5}
+    #                                              15 minutes retry
+    retry_kwargs = {'max_retries': 2, 'countdown': 60 * 15}
     retry_backoff = True
 
 
