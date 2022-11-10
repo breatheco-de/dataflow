@@ -167,7 +167,8 @@ def async_run_pipeline(self, pipeline_slug):
         async_run_transformation.delay(execution.id, [t.slug for t in transformations])
 
     except NotFound as e:
-        execution.stdout += f'Dataset table not found for {pipeline.source_from.source_type}.{pipeline.source_from.database} -> table: {pipeline.source_from.table_name}'
+        sources_from = [f'{s.source_type}.{s.database} -> table: {s.table_name}' for s in pipeline.source_from.all()
+        execution.stdout += f'Dataset table not found for {" or ".join(sources_from)}'
         execution.status = 'CRITICAL'
     except Exception as e:
         execution.log_exception(e)
