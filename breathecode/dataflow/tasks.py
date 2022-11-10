@@ -164,8 +164,7 @@ def async_run_pipeline(self, pipeline_slug):
         # get transformations queue
         transformations = list(
             Transformation.objects.filter(pipeline__slug=pipeline.slug).order_by('-order').all())
-        queue = [t.slug for t in transformations]
-        async_run_transformation.delay(execution.id, queue)
+        async_run_transformation.delay(execution.id, [t.slug for t in transformations])
 
     except NotFound as e:
         execution.stdout += f'Dataset table not found for {pipeline.source_from.source_type}.{pipeline.source_from.database} -> table: {pipeline.source_from.table_name}'
