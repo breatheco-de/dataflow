@@ -35,6 +35,7 @@ class HerokuDB(object):
 class RemoteCSV(object):
     connection = None
     bucket_name = os.environ.get('GOOGLE_BUCKET_NAME', None)
+    datastore = None
 
     def __init__(self, connection_string=None):
 
@@ -46,9 +47,11 @@ class RemoteCSV(object):
             self.connection = connection_string
         else:
             self.connection = 'gs://' + self.bucket_name + '/' + connection_string
+            
+        if self.datastore is None:
+            self.datastore = Storage()
 
     def get_dataframe_from_table(self, entity_name):
-        Storage() # connect to google storage
         df = pd.read_csv(self.connection)
         return df
 
@@ -58,5 +61,5 @@ class RemoteCSV(object):
         without_extension = os.path.splitext(filename)[0]
 
         print('Saving to ', self.bucket_name, without_extension + '.csv')
-        file = Storage().file(self.bucket_name, without_extension + '.csv')
+        file = self.datastore.file(self.bucket_name, without_extension + '.csv')
         return file.upload(df.to_csv(index=False), content_type='text/csv')
