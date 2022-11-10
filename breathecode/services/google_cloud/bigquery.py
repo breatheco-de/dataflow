@@ -69,7 +69,7 @@ class BigQuery:
     def save_dataframe_to_table(self, df, entity_name, replace=False, quoted_newlines=True):
 
         file = Storage().file(self.bucket_name, f'{entity_name}.csv')
-        file.upload(df.to_csv(), content_type='text/csv')
+        file.upload(df.to_csv(index=False), content_type='text/csv')
 
         table = self.client.dataset(self.dataset).table(entity_name)
 
