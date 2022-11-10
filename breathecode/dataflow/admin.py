@@ -68,11 +68,15 @@ def pause_for_thirty_days(modeladmin, request, queryset):
     queryset.update(paused_until=timezone.now() + timezone.timedelta(days=30))
 
 
+def remove_pause(modeladmin, request, queryset):
+    queryset.update(paused_until=None)
+
+
 @admin.register(Pipeline)
 class PipelineAdmin(admin.ModelAdmin):
     # form = CustomForm
     list_display = ('slug', 'sources', 'source_to', 'current_status')
-    actions = [execute_async, pause_for_one_day, pause_for_thirty_days]
+    actions = [execute_async, pause_for_one_day, pause_for_thirty_days, remove_pause]
     list_filter = ['status', 'project__title']
 
     # actions=[pull_github_project]
