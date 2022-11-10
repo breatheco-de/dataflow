@@ -48,6 +48,7 @@ class RemoteCSV(object):
             self.connection = 'gs://' + self.bucket_name + '/' + connection_string
 
     def get_dataframe_from_table(self, entity_name):
+        Storage() # connect to google storage
         df = pd.read_csv(self.connection)
         return df
 
