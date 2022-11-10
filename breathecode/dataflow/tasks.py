@@ -55,7 +55,7 @@ print('Starting {transformation.slug}: with '+str(len(dfs))+' dataframes -> '+st
 
 args_spect = inspect.getfullargspec(run)
 output = run(*dfs[:len(args_spect.args)])
-print('Ended {transformation.slug}: output -> '+str(output.shape))
+print('Ended transformation {transformation.slug}: output -> '+str(output.shape))
 output.to_csv('{execution.buffer_url()}', index=False)\n
 """
             exec(content, input_vars)
