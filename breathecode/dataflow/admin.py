@@ -60,11 +60,19 @@ def execute_async(modeladmin, request, queryset):
             messages.add_message(request, messages.ERROR, str(e))
 
 
+def pause_for_one_day(modeladmin, request, queryset):
+    queryset.update(paused_until=timezone.now() + timezone.timedelta(days=1))
+
+
+def pause_for_thirty_days(modeladmin, request, queryset):
+    queryset.update(paused_until=timezone.now() + timezone.timedelta(days=30))
+
+
 @admin.register(Pipeline)
 class PipelineAdmin(admin.ModelAdmin):
     # form = CustomForm
     list_display = ('slug', 'sources', 'source_to', 'current_status')
-    actions = [execute_async]
+    actions = [execute_async, pause_for_one_day, pause_for_thirty_days]
     list_filter = ['status', 'project__title']
 
     # actions=[pull_github_project]
