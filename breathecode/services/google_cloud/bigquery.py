@@ -63,8 +63,13 @@ class BigQuery:
             raise BigQueryError(errors)
 
     def get_dataframe_from_table(self, entity_name):
-        table = self.client.dataset(self.dataset).table(entity_name)
-        return self.client.list_rows(table).to_dataframe()
+
+        if len(entity_name) > 7 and "select " == entity_name[0:7].lower():
+            query_job = self.client.query(entity_name)  # SQL Query
+            return query_job.to_dataframe()
+        else:
+            table = self.client.dataset(self.dataset).table(entity_name)
+            return self.client.list_rows(table).to_dataframe()
 
     def save_dataframe_to_table(self, df, entity_name, replace=False, quoted_newlines=True):
 

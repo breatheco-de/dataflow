@@ -28,8 +28,13 @@ class HerokuDB(object):
         self.connection = pg.connect(dsn=connection_string)
 
     def get_dataframe_from_table(self, entity_name):
-        df = psql.read_sql(f'SELECT * FROM {entity_name}', self.connection)
-        return df
+
+        if len(entity_name) > 7 and "select " == entity_name[0:7].lower():
+            df = psql.read_sql(query, self.connection)
+            return df
+        else:
+            df = psql.read_sql(f'SELECT * FROM {entity_name}', self.connection)
+            return df
 
 
 class RemoteCSV(object):
@@ -47,7 +52,7 @@ class RemoteCSV(object):
             self.connection = connection_string
         else:
             self.connection = 'gs://' + self.bucket_name + '/' + connection_string
-            
+
         if self.datastore is None:
             self.datastore = Storage()
 

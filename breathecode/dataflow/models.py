@@ -82,8 +82,7 @@ class DataSource(models.Model):
         blank=True,
         default=None,
         help_text=
-        'Ignored for CSV.'
-    )
+        'Ignored for CSV. You can write a SELECT query statement, but for Heroku, SQL or Big Query only.')
     database = models.CharField(max_length=250,
                                 help_text='Ignored if Heroku or CSV.',
                                 blank=True,
