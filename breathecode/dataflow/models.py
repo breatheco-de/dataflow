@@ -76,8 +76,7 @@ class DataSource(models.Model):
     title = models.CharField(max_length=100)
     source_type = models.CharField(max_length=100)
     quoted_newlines = models.BooleanField(default=True)
-    table_name = models.CharField(
-        max_length=100,
+    table_name = models.TextField(
         null=True,
         blank=True,
         default=None,
