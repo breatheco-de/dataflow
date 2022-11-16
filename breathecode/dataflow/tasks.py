@@ -59,10 +59,10 @@ def run_transformation(transformation, execution):
 print('Starting {transformation.slug}: with '+str(len(dfs))+' dataframes -> '+str(dfs[0].shape))
 
 args_spect = inspect.getfullargspec(run)
-if "stream" in kwargs and "stream" not in args_spect:
+if "stream" in kwargs and "stream" not in args_spect.args:
     raise Exception('Transformation needs a "stream" parameter to receive incoming streaming data')
 
-output = run(*dfs[:len(args_spect.args)], **kwargs)
+output = run(*dfs[:len(args_spect.args) - len(kwargs.keys())], **kwargs)
 print('Ended transformation {transformation.slug}: output -> '+str(output.shape))
 output.to_csv('{execution.buffer_url()}', index=False)\n
 """
