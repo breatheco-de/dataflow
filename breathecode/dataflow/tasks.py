@@ -7,9 +7,10 @@ from .models import Transformation, PipelineExecution, Pipeline
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
 
-
+class RetryException(Exception):
+    pass
 class BaseTaskWithRetry(Task):
-    autoretry_for = (Exception, )
+    autoretry_for = (RetryException, )
     #                                              15 minutes retry
     retry_kwargs = {'max_retries': 2, 'countdown': 60 * 15}
     retry_backoff = True
