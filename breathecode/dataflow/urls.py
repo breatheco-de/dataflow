@@ -1,11 +1,8 @@
 from django.contrib import admin
 from django.urls import path, include
-from .views import get_apps, get_endpoints, get_download
+from .views import process_stream
 
 app_name = 'dataflow'
 urlpatterns = [
-    path('application', get_apps),
-    path('endpoint', get_endpoints),
-    path('download', get_download),
-    path('download/<int:download_id>', get_download),
+    path('stream/<slug:pipeline_slug>', process_stream),
 ]

@@ -22,19 +22,16 @@ from django.conf import settings
 
 apps = [
     ('v1/auth/', 'breathecode.authenticate.urls', 'auth'),
-    # ('v1/pipline/', 'breathecode.pipeline.urls', 'admissions'),
+    ('v1/', 'breathecode.dataflow.urls', 'dataflow'),
 ]
 
-urlpatterns_apps = [path(url, include(urlconf, namespace=namespace))
-                    for url, urlconf, namespace in apps]
+urlpatterns_apps = [path(url, include(urlconf, namespace=namespace)) for url, urlconf, namespace in apps]
 
 urlpatterns_django = [
     path('admin/', admin.site.urls),
     path('explorer/', include('explorer.urls')),
 ]
 
-urlpatterns_static = static(
-    settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+urlpatterns_static = static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
-urlpatterns = (urlpatterns_apps + urlpatterns_django +
-               urlpatterns_static)
+urlpatterns = (urlpatterns_apps + urlpatterns_django + urlpatterns_static)

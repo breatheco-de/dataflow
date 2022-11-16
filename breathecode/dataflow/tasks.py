@@ -1,4 +1,4 @@
-import logging, sys, traceback
+import logging, sys, traceback, json
 from django.utils import timezone
 from celery import shared_task, Task
 from google.cloud.exceptions import NotFound
@@ -36,7 +36,7 @@ def run_transformation(transformation, execution):
         transformation.save()
         return False
     else:
-        content = 'import inspect\nimport pandas as pd\n' + content + '\n'
+        content = 'import inspect, json\nimport pandas as pd\n' + content + '\n'
 
     with stdoutIO() as s:
         try:
@@ -46,15 +46,22 @@ def run_transformation(transformation, execution):
             input_vars = {}
 
             sources = transformation.pipeline.source_from.all()
-            content += 'dfs = [] \n'
+            content += 'dfs = [] \nkwargs = {}\n'
             for position in range(len(sources)):
                 content += f"dfs.append(pd.read_csv('{execution.buffer_url(position)}')) \n"
+
+            if execution.incoming_stream is not None:
+                content += "payload = '" + json.dumps(execution.incoming_stream) + "' \n"
+                content += 'kwargs["stream"] = json.loads(payload) \n'
 
             content += f"""
 print('Starting {transformation.slug}: with '+str(len(dfs))+' dataframes -> '+str(dfs[0].shape))
 
 args_spect = inspect.getfullargspec(run)
-output = run(*dfs[:len(args_spect.args)])
+if "stream" in kwargs and "stream" not in args_spect:
+    raise Exception('Transformation needs a "stream" parameter to receive incoming streaming data')
+
+output = run(*dfs[:len(args_spect.args)], **kwargs)
 print('Ended transformation {transformation.slug}: output -> '+str(output.shape))
 output.to_csv('{execution.buffer_url()}', index=False)\n
 """
@@ -135,16 +142,18 @@ def async_run_transformation(self, execution_id, transformations):
 
 
 @shared_task(bind=True, base=BaseTaskWithRetry)
-def async_run_pipeline(self, pipeline_slug):
+def async_run_pipeline(self, pipeline_slug, execution_id=None):
 
     pipeline = Pipeline.objects.filter(slug=pipeline_slug).first()
     if pipeline is None:
         raise Exception(f'Pipeline {pipeline_slug} not found')
 
-    execution = PipelineExecution(pipeline=pipeline, status='LOADING')
-    execution.started_at = timezone.now()
-    execution.save()  #save to get an id
+    execution = PipelineExecution.objects.filter(id=execution_id).first()
+    if execution is None:
+        execution = PipelineExecution(pipeline=pipeline)
+        execution.save()  #save to get an id
 
+    execution.started_at = timezone.now()
     pipeline.started_at = timezone.now()
     execution.save()
 
@@ -167,7 +176,9 @@ def async_run_pipeline(self, pipeline_slug):
         async_run_transformation.delay(execution.id, [t.slug for t in transformations])
 
     except NotFound as e:
-        sources_from = [f'{s.source_type}.{s.database} -> table: {s.table_name}' for s in pipeline.source_from.all()]
+        sources_from = [
+            f'{s.source_type}.{s.database} -> table: {s.table_name}' for s in pipeline.source_from.all()
+        ]
         execution.stdout += f'Dataset table not found for {" or ".join(sources_from)}'
         execution.status = 'CRITICAL'
     except Exception as e:

@@ -154,6 +154,16 @@ class Pipeline(models.Model):
         return self.source_to.table_name
 
 
+PENDING = 'PENDING'
+DONE = 'DONE'
+ERROR = 'ERROR'
+STREAM_STATUS = (
+    (PENDING, 'Pending'),
+    (DONE, 'Done'),
+    (ERROR, 'Error'),
+)
+
+
 class PipelineExecution(models.Model):
     started_at = models.DateTimeField(null=True, blank=True, default=None)
     ended_at = models.DateTimeField(null=True, blank=True, default=None)
@@ -161,6 +171,11 @@ class PipelineExecution(models.Model):
     stdout = models.TextField(blank=True, null=True, default='')
     pipeline = models.ForeignKey(Pipeline, on_delete=models.CASCADE)
     log = models.JSONField(blank=True, null=True, default=None)
+
+    incoming_stream = models.JSONField(blank=True,
+                                       null=True,
+                                       default=None,
+                                       help_text='If set, the pipeline will be treated like a stream')
 
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     updated_at = models.DateTimeField(auto_now=True, editable=False)
