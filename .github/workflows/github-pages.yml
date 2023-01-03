@@ -1,0 +1,29 @@
+name: CI to Github Pages
+
+on:
+  push:
+    branches: [development]
+
+jobs:
+
+  docs:
+    runs-on: ubuntu-latest
+    if: ${{ github.repository == 'breatheco-de/dataflow' }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python 3.10.5
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.10.5
+          cache: 'pipenv' # caching pip dependencies
+
+      - name: Install pipenv
+        run: curl https://raw.githubusercontent.com/pypa/pipenv/master/get-pipenv.py | python
+
+      - name: Install dependencies
+        run: |
+          PYTHONUNBUFFERED=1
+          pipenv install --dev --system --deploy --ignore-pipfile
+      - name: Deploy docs
+        run: pipenv run mkdocs gh-deploy --force
