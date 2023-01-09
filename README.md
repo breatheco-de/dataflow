@@ -8,21 +8,24 @@ Deploy in heroku in minutes, create pipelines of data with multiple python funct
 
 ## How to use this project?
 
-1. First, [install the project](#basic-installation-steps).
-2. Create your first pipeline using the [dataflow-project-template](https://github.com/breatheco-de/dataflow-project-template).
-3. Once your project and piplines are ready to be deployed into production, publish the project as a github repository.
-4. Create the project inside the dataflow django `/admin/dataflow/project/add/` interface, to do so you will need the github repo URL you just created in the previous step.
-5. Pull the [project code from github](https://github.com/breatheco-de/dataflow/blob/main/docs/images/pull-from-github.png?raw=true).
-6. Make sure the pipeline has been properly listed in the [Pipelines List](/admin/dataflow/pipeline/).
-7. The pipeline transformations are also [listed in the admin](/admin/dataflow/transformation/), make sure the "order" collumn matches what you specified in the project yml.
-8. Specify the input and output datasources to be used, you can specify CSV Files, SQL Databases or Google Big Query.
-9. Run your pipeline. If you have any errors while running your pipeline please refer to the [debugging section](#debugging-your-pipeline).
+1. First, [install the project](#basic-installation-steps), (only the first time, 4Geeks employees skip this step)
+2. Create your first pipeline using the [dataflow-project-template](https://github.com/breatheco-de/dataflow-project-template), this step should take you 90% of your effort and the result should be a functional fully tested pipeline ready to be deployed. Please [read the documentation](https://github.com/breatheco-de/dataflow-project-template/blob/main/README.md) carefully and make sure to follow all steps.
 
-## Sources
+### Only if you are ready for production:
+
+4. Once your project and piplines are ready to be deployed into production, publish the project as a github repository.
+5. Create the project inside the dataflow django `/admin/dataflow/project/add/` interface, to do so you will need the github repo URL you just created in the previous step.
+6. Pull the [project code from github](https://github.com/breatheco-de/dataflow/blob/main/docs/images/pull-from-github.png?raw=true).
+7. Make sure the pipeline has been properly listed in the [Pipelines List](/admin/dataflow/pipeline/).
+8. The pipeline transformations are also [listed in the admin](/admin/dataflow/transformation/), make sure the "order" collumn matches what you specified in the project yml.
+9. Specify the input and output datasources to be used, you can specify CSV Files, SQL Databases or Google Big Query.
+10. Run your pipeline. If you have any errors while running your pipeline please refer to the [debugging section](#debugging-your-pipeline).
+
+## Dataflow Sources
 
 Dataflow can retrieve or store datasets of information from and into CSV files, SQL Databases and Google BigQuery. New source types will be added in the future.
 
-## Pipelines
+## Dataflow Pipelines
 
 A pipeline is all the steps needed to clean an incoming source dataset and save it into another dataset.
 
@@ -41,6 +44,10 @@ Sometimes you need to process a single incoming item into the dataset, instead o
 Dataflow can provide a URL endpoint that can be called every time an incoming stream will arrive.
 
 ## Basic Installation Steps
+
+You only need to install this project once, no matter how many piplines or sub-projects you have. If you work at 4Geeks you don't have to install it because its already installed under [BreatheCode Dataflow](https://breathecode-dataflow.herokuapp.com/admin/).
+
+If you are not a 4Geeks employee, and you want to continue installing the dataflow core, follow this steps:
 
 1. This project must be deployed in heroku (recommended) or any other cloud, you will need a Redis server for async processing and a Postgres Database for the whole system.
 2. Once deployed, a cron job must be configured to run the command `python manage.py run_pipeline` every 10 min, this will be the lowest time delta that can be used to run a [batch pipeline](#Running-in-Batch), for example: You will not be able to run a batch pipeline every `9 min`, only `10 min` or more.
