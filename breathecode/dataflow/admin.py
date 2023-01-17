@@ -122,7 +122,7 @@ class TransformationAdmin(admin.ModelAdmin):
 @admin.register(PipelineExecution)
 class PipelineExecutionAdmin(admin.ModelAdmin):
     # form = CustomForm
-    list_display = ('id', 'pipeline', 'current_status', 'started_at')
+    list_display = ('id', 'pipeline', 'current_status', 'started_at', 'buffer')
     list_filter = ['status', 'pipeline__slug', 'pipeline__project__slug']
 
     def current_status(self, obj):
@@ -134,3 +134,6 @@ class PipelineExecutionAdmin(admin.ModelAdmin):
             'MINOR': 'bg-warning',
         }
         return format_html(f"<span class='badge {colors[obj.status]}'>{obj.status}</span>")
+
+    def buffer(self, obj):
+        return format_html(f"<a href='/v1/execution/{obj.id}/buffer?position=0&rows=500&offset=0'>download first 500 rows</span>")

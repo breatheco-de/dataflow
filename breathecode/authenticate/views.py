@@ -2,6 +2,7 @@ import os, logging
 from urllib.parse import urlencode, parse_qs
 from django.conf import settings
 from django.http import HttpResponseRedirect, HttpResponse
+from breathecode.utils import ValidationException
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
