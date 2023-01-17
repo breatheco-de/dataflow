@@ -39,9 +39,9 @@ def get_execution_buffer(request, execution_id=None):
     if execution is None:
         raise ValidationException('Pipeline Execution not found', code=404)
 
-    position = int(request.POST.get('position', 0))
-    offset = int(request.POST.get('offset', 0))
-    rows = int(request.POST.get('rows', 500))
+    position = int(request.GET.get('position', 0))
+    offset = int(request.GET.get('offset', 0))
+    rows = int(request.GET.get('rows', 500))
 
     try:
 
