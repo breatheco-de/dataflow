@@ -37,7 +37,7 @@ def run_transformation(transformation, execution):
         transformation.save()
         return False
     else:
-        content = 'import inspect, json\nimport pandas as pd\n' + content + '\n'
+        content = f'import inspect, json\nimport pandas as pd\nprint("Preparing code for the next transformation: {transformation.slug}")\n' + content + '\n'
 
     with stdoutIO() as s:
         try:
