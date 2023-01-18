@@ -66,7 +66,9 @@ output = run(*dfs[:len(args_spect.args) - len(kwargs.keys())], **kwargs)
 print('Ended transformation {transformation.slug}: output -> '+str(output.shape))
 output.to_csv('{execution.buffer_url()}', index=False)\n
 """
+            print(f"Executing transformation {transformation.slug}...")
             exec(content, input_vars)
+            print(f"Finished executing transformation {transformation.slug}.")
             transformation.status_code = 0
             transformation.status = 'OPERATIONAL'
             transformation.stdout = s.getvalue()
