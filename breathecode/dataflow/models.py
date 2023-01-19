@@ -29,6 +29,7 @@ class Project(models.Model):
     github_url = models.URLField()
     config = models.JSONField(blank=True, null=True, default=None)
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
+    last_pull = models.DateTimeField(auto_now_add=True, editable=False)
 
     def __str__(self):
         return self.title

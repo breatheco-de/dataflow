@@ -42,7 +42,7 @@ def get_blob_content(repo, path_name, branch='main'):
 
 
 def pull_project_from_github(project):
-
+    project.last_pull = timezone.now()
     credentials = CredentialsGithub.objects.filter(user__id=project.owner.id).first()
     if credentials is None:
         raise Exception(
