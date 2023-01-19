@@ -10,7 +10,7 @@ from ...tasks import async_run_pipeline
 
 class Command(BaseCommand):
     def add_arguments(self, parser):
-        parser.add_argument('entity', type=str)
+        parser.add_argument('pipeline', type=str)
         parser.add_argument(
             '--override',
             action='store_true',
