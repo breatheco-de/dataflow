@@ -7,8 +7,11 @@ from .models import Transformation, PipelineExecution, Pipeline
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
 
+
 class RetryException(Exception):
     pass
+
+
 class BaseTaskWithRetry(Task):
     autoretry_for = (RetryException, )
     #                                              15 minutes retry
@@ -18,6 +21,7 @@ class BaseTaskWithRetry(Task):
 
 def run_transformation(transformation, execution):
 
+    logger.debug(f"Running transformation {transformation.slug}")
     from io import StringIO
     import contextlib
 
@@ -29,6 +33,7 @@ def run_transformation(transformation, execution):
         sys.stdout = stdout
         yield stdout
         sys.stdout = old
+        logger.debug(f"Added stdoutIO to collect log buffers from transformation {transformation.slug}")
 
     content = transformation.get_code()
     if content is None:
@@ -37,7 +42,10 @@ def run_transformation(transformation, execution):
         transformation.save()
         return False
     else:
+        logger.debug(
+            f"Transformation {transformation.slug} code looks OK with status {transformation.status}")
         content = f'import inspect, json\nimport pandas as pd\nprint("Preparing code for the next transformation: {transformation.slug}")\n' + content + '\n'
+        logger.debug(f"Pre-prended imports to transformation code")
 
     with stdoutIO() as s:
         try:
@@ -47,6 +55,7 @@ def run_transformation(transformation, execution):
             input_vars = {}
 
             sources = transformation.pipeline.source_from.all()
+            logger.debug(f"Gathering sources for {transformation.status}")
             content += 'dfs = [] \nkwargs = {}\n'
             for position in range(len(sources)):
                 content += f"dfs.append(pd.read_csv('{execution.buffer_url(position)}')) \n"
@@ -66,14 +75,15 @@ output = run(*dfs[:len(args_spect.args) - len(kwargs.keys())], **kwargs)
 print('Ended transformation {transformation.slug}: output -> '+str(output.shape))
 output.to_csv('{execution.buffer_url()}', index=False)\n
 """
-            print(f"Executing transformation {transformation.slug}...")
+            logger.debug(f"Executing transformation {transformation.slug}...")
             exec(content, input_vars)
-            print(f"Finished executing transformation {transformation.slug}.")
+            logger.debug(f"Finalizing transformation {transformation.slug} execution.")
             transformation.status_code = 0
             transformation.status = 'OPERATIONAL'
             transformation.stdout = s.getvalue()
 
         except Exception as e:
+            logger.debug(f"Exception just happened running transformation {transformation.slug}")
             transformation.log_exception(e)
             transformation.status_code = 1
             transformation.status = 'CRITICAL'
@@ -81,6 +91,8 @@ output.to_csv('{execution.buffer_url()}', index=False)\n
     transformation.last_run = timezone.now()
     transformation.save()
 
+    logger.debug(
+        f"Finished transformation {transformation.slug} execution with status {transformation.status}.")
     return transformation
 
 
@@ -109,10 +121,12 @@ def async_run_transformation(self, execution_id, transformations):
     execution.status = t.status
     execution.ended_at = timezone.now()
 
+    logger.debug(f"{len(transformations)} transformations left to run...")
     if len(transformations) == 0 and t.status == 'OPERATIONAL':
         # no more transformations to apply, save in the database
         logger.debug(f'No more transformations to apply for execution {execution.id}, saving into datasource')
         try:
+            logger.debug(f"Saving pipeline {pipeline.slug} buffer to datasource")
             df = execution.get_buffer_df()
             TO_DB = t.pipeline.source_to.get_source()
             TO_DB.save_dataframe_to_table(df,
@@ -124,6 +138,7 @@ def async_run_transformation(self, execution_id, transformations):
             execution.stdout += f'Saved to database {pipeline.source_to.title}'
 
         except NotFound as e:
+            logger.debug(f"Error saving buffer for pipeline {pipeline.slug}")
             msg = f'Dataset table not found for {pipeline.source_to.source_type}.{pipeline.source_to.database} -> table: {pipeline.source_to.table_name}'
             pipeline.status = 'CRITICAL'
 
@@ -131,6 +146,7 @@ def async_run_transformation(self, execution_id, transformations):
             execution.status = 'CRITICAL'
 
         except Exception as e:
+            logger.exception(f"Error running pipeline {pipeline.slug}")
             pipeline.status = 'CRITICAL'
             execution.stdout += execution.log_exception(e)
             execution.status = 'CRITICAL'

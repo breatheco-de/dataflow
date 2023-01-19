@@ -102,7 +102,7 @@ class PipelineAdmin(admin.ModelAdmin):
 @admin.register(Transformation)
 class TransformationAdmin(admin.ModelAdmin):
     # form = CustomForm
-    list_display = ('id', 'slug', 'order', 'current_status', 'pipeline', 'last_run', 'last_sync_at')
+    list_display = ('id', 'slug', 'order', 'current_status', 'pipeline', 'last_run', 'last_sync_at', 'script')
     # actions = [run_single_script]
     list_filter = ['status', 'pipeline__slug', 'pipeline__project__slug']
 
@@ -117,6 +117,9 @@ class TransformationAdmin(admin.ModelAdmin):
             'MINOR': 'bg-warning',
         }
         return format_html(f"<span class='badge {colors[obj.status]}'>{obj.status}</span>")
+
+    def script(self, obj):
+        return format_html(f"<a target='_blank' href='/v1/transformation/{obj.slug}/code'>view code</span>")
 
 
 @admin.register(PipelineExecution)
@@ -136,4 +139,6 @@ class PipelineExecutionAdmin(admin.ModelAdmin):
         return format_html(f"<span class='badge {colors[obj.status]}'>{obj.status}</span>")
 
     def buffer(self, obj):
-        return format_html(f"<a href='/v1/execution/{obj.id}/buffer?position=0&rows=500&offset=0'>download first 500 rows</span>")
+        return format_html(
+            f"<a href='/v1/execution/{obj.id}/buffer?position=0&rows=500&offset=0'>download first 500 rows</span>"
+        )
