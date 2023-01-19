@@ -11,17 +11,6 @@ from ...tasks import async_run_pipeline
 class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument('pipeline', type=str)
-        parser.add_argument(
-            '--override',
-            action='store_true',
-            help='Delete and add again',
-        )
-        parser.add_argument('--limit',
-                            action='store',
-                            dest='limit',
-                            type=int,
-                            default=0,
-                            help='How many to import')
 
     def handle(self, *args, **options):
         filter_by = sys.argv[2]
