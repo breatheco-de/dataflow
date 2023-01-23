@@ -3,6 +3,7 @@ from django.contrib import admin
 from django import forms
 from breathecode.utils import getLogger
 from django.utils import timezone
+from django.http import HttpResponse
 from django.contrib import messages
 from .models import Pipeline, Transformation, Project, DataSource, PipelineExecution
 from .actions import pull_project_from_github
@@ -23,6 +24,25 @@ def pull_github_project(modeladmin, request, queryset):
             logger.exception(e)
             messages.add_message(request, messages.ERROR, str(e))
 
+def download_sample_data(self, request, queryset):
+
+    sources = queryset.all()
+    if sources.count() != 1:
+        messages.add_message(request, messages.ERROR, "Please choose one source to download data from")
+        return None
+
+    source = sources[0]
+    driver = source.get_source()
+    df = driver.get_dataframe_from_table(source.table_name)
+    offset = 0
+    rows = 100
+    
+    data = df.iloc[offset:offset + rows]
+    csv_data = data.to_csv(index=False)
+    response = HttpResponse(csv_data, content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="' + str(source.slug) + '.csv"'
+    return response
+
 
 class DataSourceForm(forms.ModelForm):
 
@@ -38,7 +58,7 @@ class DataSourceAdmin(admin.ModelAdmin):
     list_display = ('slug', 'title', 'source_type', 'table_name')
     # actions = [run_single_script]
     list_filter = ['title']
-    # actions = [pull_github_project]
+    actions = [download_sample_data]
 
 
 @admin.register(Project)
