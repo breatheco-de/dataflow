@@ -30,6 +30,7 @@ class HerokuDB(object):
     def get_dataframe_from_table(self, entity_name):
 
         if len(entity_name) > 7 and "select " == entity_name[0:7].lower():
+            query = entity_name # its probably some SQL query instead of an entity name
             df = psql.read_sql(query, self.connection)
             return df
         else:
