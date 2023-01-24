@@ -14,10 +14,11 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         filter_by = sys.argv[2]
-        if filter_by is not None:
-            executions = PipelineExecution.objects.filter(pipeline__slug=filter_by).all()
-            executions.delete()
         if filter_by == 'all':
             executions = PipelineExecution.objects.all()
-            executions.delete()
+            return executions.delete()
+        if filter_by is not None:
+            executions = PipelineExecution.objects.filter(pipeline__slug=filter_by).all()
+            return executions.delete()
+        
 
