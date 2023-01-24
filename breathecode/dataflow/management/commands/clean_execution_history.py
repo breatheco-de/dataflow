@@ -18,9 +18,17 @@ class Command(BaseCommand):
             raise Exception('Invalidad pipeline slug')
         if filter_by is 'all':
             executions = PipelineExecution.objects.all()
-            return executions.delete()
+            if len(executions) == 0:
+                print('No matching records found in the database.')
+            else:
+                executions.delete()
+                print('Records deleted successfully')
         if filter_by is not None and filter_by != 'all':
             executions = PipelineExecution.objects.filter(pipeline__slug=filter_by).all()
-            return executions.delete()
+            if len(executions) == 0:
+                print('No matching records found in the database.')
+            else:
+                executions.delete()
+                print('Records deleted successfully')
         
 
