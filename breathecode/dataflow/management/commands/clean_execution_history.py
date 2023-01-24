@@ -14,7 +14,9 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         filter_by = sys.argv[2]
-        if filter_by == 'all':
+        if filter_by is None:
+            raise Exception('Invalidad pipeline slug')
+        if filter_by is 'all':
             executions = PipelineExecution.objects.all()
             return executions.delete()
         if filter_by is not None and filter_by != 'all':
