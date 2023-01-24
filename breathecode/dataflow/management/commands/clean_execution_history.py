@@ -14,21 +14,21 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         filter_by = sys.argv[2]
-        if filter_by is None:
+        if filter_by == None:
             raise Exception('Invalidad pipeline slug')
-        if filter_by is 'all':
+        if filter_by == 'all':
             executions = PipelineExecution.objects.all()
             if len(executions) == 0:
-                print('No matching records found in the database.')
+                return print('No matching records found in the database.')
             else:
                 executions.delete()
-                print('Records deleted successfully')
-        if filter_by is not None and filter_by != 'all':
+                return print('Records deleted successfully')
+        if filter_by != None:
             executions = PipelineExecution.objects.filter(pipeline__slug=filter_by).all()
             if len(executions) == 0:
-                print('No matching records found in the database.')
+                return print('No matching records found in the database.')
             else:
                 executions.delete()
-                print('Records deleted successfully')
+                return print('Records deleted successfully')
         
 
