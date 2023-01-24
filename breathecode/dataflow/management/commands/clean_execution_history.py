@@ -8,21 +8,14 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         pipeline_slug = sys.argv[2]
-        if pipeline__slug == None:
+        if pipeline_slug is None or pipeline_slug == "":
             raise Exception('Missing pipeline slug')
-        if pipeline_slug == 'all':
-            executions = PipelineExecution.objects.all()
-            if len(executions) == 0:
-                print('No matching records found in the database.')
-            else:
-                executions.delete()
-                print('Records deleted successfully')
-        else:
-            executions = PipelineExecution.objects.filter(pipeline__slug=pipeline_slug).all()
-            if len(executions) == 0:
-                print('No matching records found in the database.')
-            else:
-                executions.delete()
-                print('Records deleted successfully')
-        
+
+        executions = PipelineExecution.objects.all()
+        if pipeline_slug != 'all':
+            executions = executions.filter(pipeline__slug=pipeline_slug)
+
+        print(f'Deleting {len(executions)} records found in the database.')
+        executions.delete()
+        print('Records deleted successfully')
 
