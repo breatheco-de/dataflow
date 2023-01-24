@@ -2,11 +2,12 @@ import os, logging
 from urllib.parse import urlencode, parse_qs
 from django.conf import settings
 from django.http import HttpResponseRedirect, HttpResponse
+from django.shortcuts import redirect, render
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from django.utils import timezone
-from .models import Pipeline, PipelineExecution
+from .models import Pipeline, PipelineExecution, Transformation
 from breathecode.utils import ValidationException
 from .serializers import ExecutionSerializer
 from .tasks import async_run_pipeline
@@ -31,6 +32,23 @@ def process_stream(request, pipeline_slug):
 
     return Response(ExecutionSerializer(execution).data)
 
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_transformation_code(request, transformation_slug):
+
+    transformation = Transformation.objects.filter(slug=transformation_slug).first()
+    if transformation is None:
+        raise ValidationException('Transformation not found', code=404)
+
+    return render(
+        request, 'transformation.html', {
+            'code': transformation.get_code(),
+            'pipeline': transformation.pipeline.slug,
+            'slug': transformation.slug,
+        })
+
+
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def get_execution_buffer(request, execution_id=None):
@@ -50,13 +68,11 @@ def get_execution_buffer(request, execution_id=None):
             raise ValidationException("Execution buffer not found for position %s" % position)
 
         df = pd.read_csv(buffer_url)
-        data = df.iloc[offset:offset+rows]
+        data = df.iloc[offset:offset + rows]
         csv_data = data.to_csv(index=False)
         response = HttpResponse(csv_data, content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename="'+str(execution)+'.csv"'
+        response['Content-Disposition'] = 'attachment; filename="' + str(execution) + '.csv"'
         return response
     except Exception as e:
         logger.error(e)
         raise ValidationException(str(e))
-
-
