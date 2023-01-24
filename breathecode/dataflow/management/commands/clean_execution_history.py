@@ -17,7 +17,7 @@ class Command(BaseCommand):
         if filter_by == 'all':
             executions = PipelineExecution.objects.all()
             return executions.delete()
-        if filter_by is not None:
+        if filter_by is not None and filter_by != 'all':
             executions = PipelineExecution.objects.filter(pipeline__slug=filter_by).all()
             return executions.delete()
         
