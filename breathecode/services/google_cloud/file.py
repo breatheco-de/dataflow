@@ -23,16 +23,22 @@ class File:
         if self.blob:
             self.blob.delete()
 
-    def upload(self, content, public: bool = False, content_type: str = 'text/plain') -> None:
+    def upload(self, content=None, from_filename=None, public: bool = False, content_type: str = 'text/plain') -> None:
         """Upload Blob from Bucket"""
         self.blob = self.bucket.blob(self.file_name)
 
-        if isinstance(content, str) or isinstance(content, bytes):
-            self.blob.upload_from_string(content, content_type=content_type)
+        if from_filename is not None:
+            self.blob.upload_from_filename(from_filename)
 
+        elif content is None:
+            raise ValueError('File content is required')
         else:
-            content.seek(0)
-            self.blob.upload_from_file(content, content_type=content_type)
+            if isinstance(content, str) or isinstance(content, bytes):
+                self.blob.upload_from_string(content, content_type=content_type)
+
+            else:
+                content.seek(0)
+                self.blob.upload_from_file(content, content_type=content_type)
 
         if public:
             self.blob.make_public()

@@ -152,6 +152,9 @@ def async_run_transformation(self, execution_id, transformations):
             execution.status = 'CRITICAL'
 
     elif len(transformations) > 0 and t.status == 'OPERATIONAL':
+        # upload to google cloud the buffer to future debugging purposes
+        execution.backup_buffer_df() 
+        
         async_run_transformation.delay(execution_id, transformations)
 
     pipeline.save()
@@ -207,4 +210,15 @@ def async_run_pipeline(self, pipeline_slug, execution_id=None):
     pipeline.status = execution.status
     execution.save()
     pipeline.save()
+    return True
+
+@shared_task(bind=True, base=BaseTaskWithRetry)
+def async_backup_buffer(self, execution_id, position):
+
+    execution = PipelineExecution.objects.filter(id=execution_id).first()
+    if execution is None:
+        raise Exception(f'Execution {execution_id} not found')
+
+    execution.backup_buffer_df(position)
+
     return True

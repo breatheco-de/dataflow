@@ -198,6 +198,27 @@ class PipelineExecution(models.Model):
         result = df.to_csv(self.buffer_url(position), index=False)
         print('saved buffer')
 
+    def backup_buffer(self, position=0):
+        from breathecode.services.google_cloud.storage import Storage
+
+        storage = Storage()
+        bucket_name = os.environ.get('GOOGLE_BUCKET_NAME', None)
+
+        buffer_url = self.buffer_url(position)
+        if not os.path.isfile(buffer_url):
+            raise ValidationException("Execution buffer not found for position %s" % position)
+
+        if not os.path.exists('./buffer'):
+            raise Exception('Directory "buffer" does not exists')
+
+        backup_path = f'buffer/{self.pipeline.slug}.csv'
+        print('Saving to ', bucket_name, backup_path)
+
+        file = storage.file(bucket_name, backup_path)
+        file.upload(from_filename=buffer_url)
+
+        return True
+
 
 class Transformation(models.Model):
     slug = models.SlugField()

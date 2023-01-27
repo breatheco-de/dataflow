@@ -122,11 +122,23 @@ class TransformationAdmin(admin.ModelAdmin):
         return format_html(f"<a target='_blank' href='/v1/transformation/{obj.slug}/code'>view code</span>")
 
 
+
+def backup_buffer_to_gcp(modeladmin, request, queryset):
+    executions = queryset.all()
+    for e in executions:
+        try:
+            position = e.pipeline.transformation_set.filter(status='OPERATIONAL').count()
+            if position > 0:
+                e.backup_buffer(position-1)
+        except Exception as e:
+            logger.exception(e)
+
 @admin.register(PipelineExecution)
 class PipelineExecutionAdmin(admin.ModelAdmin):
     # form = CustomForm
     list_display = ('id', 'pipeline', 'current_status', 'started_at', 'buffer')
     list_filter = ['status', 'pipeline__slug', 'pipeline__project__slug']
+    actions = [backup_buffer_to_gcp]
 
     def current_status(self, obj):
         colors = {
