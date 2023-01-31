@@ -153,9 +153,6 @@ def async_run_transformation(self, execution_id, transformations):
             execution.status = 'CRITICAL'
 
     elif len(transformations) > 0 and t.status == 'OPERATIONAL':
-        # upload to google cloud the buffer to future debugging purposes
-        execution.backup_buffer_df() 
-        
         async_run_transformation.delay(execution_id, transformations)
 
     pipeline.save()
