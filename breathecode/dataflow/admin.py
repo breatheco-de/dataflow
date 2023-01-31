@@ -153,12 +153,15 @@ def backup_buffer_to_gcp(modeladmin, request, queryset):
         except Exception as e:
             logger.exception(e)
 
+def abort_execution(modeladmin, request, queryset):
+    queryset.update(status='ABORTED')
+
 @admin.register(PipelineExecution)
 class PipelineExecutionAdmin(admin.ModelAdmin):
     # form = CustomForm
     list_display = ('id', 'pipeline', 'current_status', 'started_at', 'buffer')
     list_filter = ['status', 'pipeline__slug', 'pipeline__project__slug']
-    actions = [backup_buffer_to_gcp]
+    actions = [backup_buffer_to_gcp, abort_execution]
 
     def current_status(self, obj):
         colors = {
@@ -172,5 +175,5 @@ class PipelineExecutionAdmin(admin.ModelAdmin):
 
     def buffer(self, obj):
         return format_html(
-            f"<a href='/v1/execution/{obj.id}/buffer?position=0&rows=500&offset=0'>download first 500 rows</span>"
+            f"<a href='/v1/execution/{obj.id}/buffer?position=0&rows=500&offset=0'>download buffer</span>"
         )

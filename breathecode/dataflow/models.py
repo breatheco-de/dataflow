@@ -158,10 +158,12 @@ class Pipeline(models.Model):
 PENDING = 'PENDING'
 DONE = 'DONE'
 ERROR = 'ERROR'
+ABORTED = 'ABORTED'
 STREAM_STATUS = (
     (PENDING, 'Pending'),
     (DONE, 'Done'),
     (ERROR, 'Error'),
+    (ABORTED, 'Aborted'),
 )
 
 

@@ -109,6 +109,12 @@ def async_run_transformation(self, execution_id, transformations):
     if len(transformations) == 0:
         return True
 
+    if execution.status == 'ABORTED':
+        execution.ended_at = timezone.now()
+        execution.stdout += 'Aborted by admin user.'
+        execution.save()
+        return False
+
     next = transformations.pop()
     t = Transformation.objects.filter(pipeline__slug=pipeline.slug, slug=next).first()
     t = run_transformation(t, execution)
