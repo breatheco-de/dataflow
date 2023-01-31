@@ -1,7 +1,8 @@
 import os, logging
+import csv
 from urllib.parse import urlencode, parse_qs
 from django.conf import settings
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect, HttpResponse, StreamingHttpResponse
 from django.shortcuts import redirect, render
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
@@ -63,15 +64,9 @@ def get_execution_buffer(request, execution_id=None):
 
     try:
 
-        buffer_url = execution.buffer_url(position)
-        if not os.path.isfile(buffer_url):
-            raise ValidationException("Execution buffer not found for position %s" % position)
-
-        df = pd.read_csv(buffer_url)
-        data = df.iloc[offset:offset + rows]
-        csv_data = data.to_csv(index=False)
-        response = HttpResponse(csv_data, content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename="' + str(execution) + '.csv"'
+        stream = execution.get_buffer_backup()
+        response = StreamingHttpResponse(stream.all(), content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="' + str(execution.pipeline.slug) + '.csv"'
         return response
     except Exception as e:
         logger.error(e)

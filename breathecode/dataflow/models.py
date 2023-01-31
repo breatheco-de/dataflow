@@ -220,6 +220,18 @@ class PipelineExecution(models.Model):
 
         return True
 
+    def get_buffer_backup(self):
+        from breathecode.services.google_cloud.storage import Storage
+
+        storage = Storage()
+        bucket_name = os.environ.get('GOOGLE_BUCKET_NAME', None)
+
+        backup_path = f'buffer/{self.pipeline.slug}.csv'
+        print(f'Fetching backup from {backup_path}')
+
+        file = storage.file(bucket_name, backup_path)
+        return file.stream_download()
+
 
 class Transformation(models.Model):
     slug = models.SlugField()

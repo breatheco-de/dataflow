@@ -90,6 +90,7 @@ output.to_csv('{execution.buffer_url()}', index=False)\n
 
     transformation.last_run = timezone.now()
     transformation.save()
+    async_backup_buffer.delay(execution.id, position=0)
 
     logger.debug(
         f"Finished transformation {transformation.slug} execution with status {transformation.status}.")
@@ -213,12 +214,12 @@ def async_run_pipeline(self, pipeline_slug, execution_id=None):
     return True
 
 @shared_task(bind=True, base=BaseTaskWithRetry)
-def async_backup_buffer(self, execution_id, position):
+def async_backup_buffer(self, execution_id, position=0):
 
     execution = PipelineExecution.objects.filter(id=execution_id).first()
     if execution is None:
         raise Exception(f'Execution {execution_id} not found')
 
-    execution.backup_buffer_df(position)
+    execution.backup_buffer(position)
 
     return True
