@@ -108,6 +108,7 @@ class PipelineAdmin(admin.ModelAdmin):
             'LOADING': 'bg-warning',
             'FATAL': 'bg-error',  # important: this status was deprecated and deleted!
             'MINOR': 'bg-warning',
+            'ABORTED': 'bg-error',
         }
         now = timezone.now()
         if obj.paused_until is not None and obj.paused_until > now:
@@ -135,6 +136,7 @@ class TransformationAdmin(admin.ModelAdmin):
             'LOADING': 'bg-warning',
             'FATAL': 'bg-error',  # important: this status was deprecated and deleted!
             'MINOR': 'bg-warning',
+            'ABORTED': 'bg-error',
         }
         return format_html(f"<span class='badge {colors[obj.status]}'>{obj.status}</span>")
 
@@ -170,6 +172,7 @@ class PipelineExecutionAdmin(admin.ModelAdmin):
             'LOADING': 'bg-warning',
             'FATAL': 'bg-error',  # important: this status was deprecated and deleted!
             'MINOR': 'bg-warning',
+            'ABORTED': 'bg-error',
         }
         return format_html(f"<span class='badge {colors[obj.status]}'>{obj.status}</span>")
 
