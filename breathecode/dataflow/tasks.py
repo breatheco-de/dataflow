@@ -160,7 +160,7 @@ def async_run_transformation(self, execution_id, transformations):
         except Exception as e:
             logger.exception(f"Error running pipeline {pipeline.slug}")
             pipeline.status = 'CRITICAL'
-            execution.stdout += str(execution.log_exception(e))
+            execution.log_exception(e)
             execution.status = 'CRITICAL'
 
     elif len(transformations) > 0 and t.status == 'OPERATIONAL':
