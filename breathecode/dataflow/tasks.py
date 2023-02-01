@@ -108,6 +108,10 @@ def async_run_transformation(self, execution_id, transformations):
 
     if len(transformations) == 0:
         return True
+    
+    # avoid concatenation with None down below
+    if execution.stdout is None:
+        execution.stdout = ""
 
     if execution.status == 'ABORTED':
         execution.ended_at = timezone.now()
