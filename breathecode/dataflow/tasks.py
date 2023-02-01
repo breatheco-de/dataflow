@@ -131,6 +131,7 @@ def async_run_transformation(self, execution_id, transformations):
     execution.stdout += t.stdout
     execution.status = t.status
     execution.ended_at = timezone.now()
+    execution.save()
 
     logger.debug(f"{len(transformations)} transformations left to run...")
     if len(transformations) == 0 and t.status == 'OPERATIONAL':
