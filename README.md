@@ -62,16 +62,25 @@ If you are not a 4Geeks employee, and you want to continue installing the datafl
 
 ### Clean Pipeline Execution Log
 
-----USAGE----
+To delete all the records: 
 
---To delete all the records:
+```
 $ python manage.py clean_execution_history
+```
 
---To delete all the records of an specific pipeline:
+To delete all the records of an specific pipeline:
+
+```
 $ python manage.py clean_execution_history --pipeline=<pipeline_slug>
+```
 
---To delete all the records older than a specific number of days:
+To delete all the records older than a specific number of days:
+```
 $ python manage.py clean_execution_history --days_old=<days_old>
+```
 
---To delete all the records from a specific pipeline an older than a specific number of days:
+To delete all the records from a specific pipeline an older than a specific number of days:
+
+```
 $ python manage.py clean_execution_history --pipeline=<pipeline_slug> --days_old=<days_old>
+```
