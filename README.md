@@ -58,4 +58,20 @@ If you are not a 4Geeks employee, and you want to continue installing the datafl
 2. You can check the list of the transformations for the column `status` with value `ERROR`.
 3. Open the transformation and check for the `stdout` value, this is the buffer stdout that was created while running the transformation, every `print` statement, error or warning should show up here.
 
+## Maintenance Tasks
 
+### Clean Pipeline Execution Log
+
+----USAGE----
+
+--To delete all the records:
+$ python manage.py clean_execution_history
+
+--To delete all the records of an specific pipeline:
+$ python manage.py clean_execution_history --pipeline=<pipeline_slug>
+
+--To delete all the records older than a specific number of days:
+$ python manage.py clean_execution_history --days_old=<days_old>
+
+--To delete all the records from a specific pipeline an older than a specific number of days:
+$ python manage.py clean_execution_history --pipeline=<pipeline_slug> --days_old=<days_old>
