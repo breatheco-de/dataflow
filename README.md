@@ -6,7 +6,7 @@ It's a very simple minimalistic project to clean and deploy datasets in real tim
 
 It supports **[batch](#running-in-batch)** and **[streaming](#running-as-a-stream)** processing and it comes with a tool to manually test pipline and unit-test your pipeline.
 
-# Why use dataflow
+## Why use dataflow
 
 1. All pipelines are commited into a git repository, making them easy to collaborate, tracking versions, etc.
 2. Each pipeline transformation is a unit-tested python file, making them easier to maintain and detect errors in the future.
