@@ -15,6 +15,8 @@ I was overwhelmed with all the [steps and products needed to deploy a serious da
 3. Deploy pipelines by pushing into git with continuous integration.
 4. Ingest or create datasets from any SQL Database, Heroku, Big Query and CSV files from buckets.
 
+Note: This product works and is being used to process thousands of records per day, but its being maintained by a small team and you may encounter some bugs along the way.
+
 ## How to use this project?
 
 1. First, [install the project](#basic-installation-steps), (only the first time, 4Geeks employees skip this step)
