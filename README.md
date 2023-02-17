@@ -20,7 +20,7 @@ Note: This product works and is being used to process thousands of records per d
 ## How to use this project?
 
 1. First, [install the project](#basic-installation-steps), (only the first time, 4Geeks employees skip this step)
-2. Create your first pipeline using the [dataflow-project-template](https://github.com/breatheco-de/dataflow-project-template), this step should take you 90% of your effort and the result should be a functional fully tested pipeline ready to be deployed. Please [read the documentation](https://github.com/breatheco-de/dataflow-project-template/blob/main/README.md) carefully and make sure to follow all steps.
+2. Create your first pipeline using the [dataflow-project-template](https://github.com/breatheco-de/dataflow-project-template), this step represents 90% of the effort, the result should be a functional fully tested pipeline ready to be deployed. Please [read the documentation](https://github.com/breatheco-de/dataflow-project-template/blob/main/README.md) carefully and make sure to follow all steps.
 
 ### Only if you are ready for production:
 
