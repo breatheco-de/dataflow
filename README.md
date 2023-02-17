@@ -8,7 +8,7 @@ It supports **[batch](#running-in-batch)** and **[streaming](#running-as-a-strea
 
 ## Why use dataflow
 
-I was overwhelmed with all the [steps and products needed to deploy a serious data pipeline in the cloud](https://github.com/breatheco-de/dataflow/blob/main/docs/images/big-data-pipeline.png?raw=true). So I created dataflow to do the same thing in a smallar scale, without barely any steps and tools.
+I was overwhelmed with all the [steps and products needed to deploy a serious data pipeline in the cloud](https://github.com/breatheco-de/dataflow/blob/main/docs/images/big-data-pipeline.png?raw=true). So I created dataflow to do the same thing in a smaller scale, without barely any steps and tools.
 
 1. All pipelines are commited into a git repository, making them easy to collaborate, tracking versions, etc.
 2. Each pipeline transformation is a unit-tested python file, making them easier to maintain and detect errors in the future.
