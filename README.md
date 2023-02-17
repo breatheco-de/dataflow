@@ -6,7 +6,12 @@ It's a very simple minimalistic project to clean and deploy datasets in real tim
 
 It supports **[batch](#running-in-batch)** and **[streaming](#running-as-a-stream)** processing and it comes with a tool to manually test pipline and unit-test your pipeline.
 
-Deploy in heroku in minutes, create pipelines of data with multiple python functions to clean your dataset and save it into CSV, SQL or BigQuery.
+# Why use dataflow
+
+1. All pipelines are commited into a git repository, making them easy to collaborate, tracking versions, etc.
+2. Each pipeline transformation is a unit-tested python file, making them easier to maintain and detect errors in the future.
+3. Deploy pipelines by pushing into git with continuous integration.
+4. Ingest or create datasets from any SQL Database, Heroku, Big Query and CSV files from buckets.
 
 ## How to use this project?
 
