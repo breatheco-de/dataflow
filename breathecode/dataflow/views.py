@@ -8,9 +8,9 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from django.utils import timezone
-from .models import Pipeline, PipelineExecution, Transformation
+from .models import Pipeline, PipelineExecution, Transformation, Project
 from breathecode.utils import ValidationException
-from .serializers import ExecutionSerializer
+from .serializers import ExecutionSerializer, PipelineSerializer
 from .tasks import async_run_pipeline
 import pandas as pd
 
@@ -85,3 +85,33 @@ def get_execution_buffer(request, execution_id=None):
     except Exception as e:
         logger.error(e)
         raise ValidationException(str(e))
+
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_project_details(request, project_id):
+    project = Project.objects.filter(id=project_id).first()
+    pipelines = Pipeline.objects.filter(project__id=project_id)
+    if project is None:
+        raise ValidationException('Project not found', code=404)
+    pipelines_array = []
+    for pipeline in pipelines:
+        pipeline_title = pipeline.slug.replace('_', ' ').capitalize()
+        duration = None
+        if pipeline.started_at and pipeline.ended_at:
+            duration_timedelta = pipeline.ended_at - pipeline.started_at
+            duration = int(duration_timedelta.total_seconds() / 60)
+        p = {
+            "slug": pipeline_title,
+            "frequency_delta_minutes": pipeline.frequency_delta_minutes,
+            "started_at": pipeline.started_at,
+            "status": pipeline.status,
+            "duration": duration
+        }
+        pipelines_array.append(p)
+    return render(
+        request, 'project.html', {
+            "project": project,
+            "pipelines": pipelines_array
+        })

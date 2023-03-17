@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="refresh" content="10">
+    <title>Project</title>
+    <base target="_blank" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.27.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+<body>
+    <style>
+        body{
+            padding: 10px 50px;
+            font-family: "Helvetica Neue",Helvetica;
+        }
+      
+        .container{
+            padding: 50px;
+        }
+        .container > div {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        article {
+            margin-top: 10px
+        }
+        article > div {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .operational {
+            background-color: #219653;
+        }
+        .critical {
+            background-color: #972929;
+        }
+        .minor {
+            background-color: #977a29;
+        }
+        button {
+            padding: 7px;
+            border: 0;
+            border-radius: 3px;
+            color: #fff;
+        }
+        span {
+            background-color: #ffffff;
+            padding: 4px 6px;
+            border-radius: 3px;
+            margin-left: 6px;
+            border: 1px black solid;
+            cursor: pointer;
+        }
+        
+    
+    </style>
+    <div class="container">
+        <div><h1>Project: {{ project.title }}</h1><div><button class="operational">Operational</button><span id="run-project"><svg width="12" height="14" viewBox="0 0 18 23" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M17.0523 9.72364L2.90901 0.782205C1.75987 0.0560625 0 0.760722 0 2.55674V20.4353C0 22.0466 1.63531 23.0176 2.90901 22.2099L17.0523 13.2727C18.3139 12.4778 18.3179 10.5185 17.0523 9.72364Z" fill="black"/>
+            </svg>
+        </span></div></div>
+        <section >
+            <h2>Pipelines</h2>
+            <hr>
+            {% for pipeline in pipelines %}
+        <article>
+            <div>
+                <h2>{{ pipeline.slug }}</h2>
+                {% if pipeline.status == 'OPERATIONAL' %}
+                    <button class="operational">Operational</button>
+                {% endif %}
+                {% if pipeline.status == 'CRITICAL' %}
+                    <button class="critical">Critical</button>
+                {% endif %}
+                {% if pipeline.status == 'MINOR' %}
+                    <button class="minor">Minor</button>
+                {% endif %}
+                {% if pipeline.status == 'LOADING' %}
+                    <button class="minor">Loading</button>
+                {% endif %}
+            </div>
+            <div>
+                <small>Runs every: {{ pipeline.frequency_delta_minutes }}</small>
+                <div>
+                    {% if pipeline.started_at %}
+                        <small>Last run: {{ pipeline.started_at|timesince }} ago</small><br>
+                    {% endif %}
+                    {% if pipeline.duration %}
+                    <small>Duration:{{ pipeline.duration }} minutes</small>
+                    {% endif %}
+                        
+                    
+                </div>
+            </div>
+        </article>
+        {% endfor %}
+        </section>
+    </div>
+    <!-- <pre class="container"><code class="language-python">{{ code }}</code></pre> -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.27.0/prism.min.js" integrity="sha512-/Swpp6aCQ0smuZ+zpklJqMClcUlvxhpLf9aAcM7JjJrj2waCU4dikm3biOtMVAflOOeniW9qzaNXNrbOAOWFCw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.27.0/plugins/autoloader/prism-autoloader.min.js" integrity="sha512-GP4x8UWxWyh4BMbyJGOGneiTbkrWEF5izsVJByzVLodP8CuJH/n936+yQDMJJrOPUHLgyPbLiGw2rXmdvGdXHA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script>
+        const runProject = () => {
+            const project_id = 2; // replace with the actual project ID
+            fetch(`/v1/project/${project_id}/run`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+            })
+            .catch(error => {
+                console.log(error);
+            });
+        }
+        document.querySelector('#run-project').addEventListener('click', runProject)    </script>
+</body>
+</html>
