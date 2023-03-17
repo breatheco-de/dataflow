@@ -50,6 +50,20 @@ def get_transformation_code(request, transformation_slug):
         })
 
 
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def run_project(request, project_id):
+
+    pipelines = Pipeline.objects.filter(project__id=project_id)
+    for p in pipelines:
+        try:
+            async_run_pipeline.delay(p.slug)
+        except Exception as e:
+            raise ValidationException(str(e))
+    
+    return Response(PipelineSerializer(pipelines, many=True).data)
+
+
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def get_execution_buffer(request, execution_id=None):
