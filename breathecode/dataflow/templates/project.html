@@ -87,13 +87,9 @@
                 <small>Runs every: {{ pipeline.frequency_delta_minutes }}</small>
                 <div>
                     {% if pipeline.started_at %}
-                        <small>Last run: {{ pipeline.started_at|timesince }} ago</small><br>
-                    {% endif %}
-                    {% if pipeline.duration %}
+                    <small>Last run: {{ pipeline.started_at|timesince }} ago</small><br>
                     <small>Duration:{{ pipeline.duration }} minutes</small>
-                    {% endif %}
-                        
-                    
+                    {% endif %}                            
                 </div>
             </div>
         </article>
