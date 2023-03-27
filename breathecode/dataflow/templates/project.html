@@ -32,13 +32,13 @@
             justify-content: space-between;
             align-items: center;
         }
-        .operational {
+        .bg-success {
             background-color: #219653;
         }
-        .critical {
+        .bg-danger {
             background-color: #972929;
         }
-        .minor {
+        .bg-minor {
             background-color: #977a29;
         }
         button {
@@ -59,7 +59,7 @@
     
     </style>
     <div class="container">
-        <div><h1>Project: {{ project.title }}</h1><div><button class="operational">Operational</button><span id="run-project"><svg width="12" height="14" viewBox="0 0 18 23" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <div><h1>Project: {{ project.title }}</h1><div><button class="bg-success">Operational</button><span id="run-project"><svg width="12" height="14" viewBox="0 0 18 23" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M17.0523 9.72364L2.90901 0.782205C1.75987 0.0560625 0 0.760722 0 2.55674V20.4353C0 22.0466 1.63531 23.0176 2.90901 22.2099L17.0523 13.2727C18.3139 12.4778 18.3179 10.5185 17.0523 9.72364Z" fill="black"/>
             </svg>
         </span></div></div>
@@ -70,18 +70,7 @@
         <article>
             <div>
                 <h2>{{ pipeline.slug }}</h2>
-                {% if pipeline.status == 'OPERATIONAL' %}
-                    <button class="operational">Operational</button>
-                {% endif %}
-                {% if pipeline.status == 'CRITICAL' %}
-                    <button class="critical">Critical</button>
-                {% endif %}
-                {% if pipeline.status == 'MINOR' %}
-                    <button class="minor">Minor</button>
-                {% endif %}
-                {% if pipeline.status == 'LOADING' %}
-                    <button class="minor">Loading</button>
-                {% endif %}
+                <button class="{{pipeline.color}}">{{ pipeline.status }}</button>
             </div>
             <div>
                 <small>Runs every: {{ pipeline.frequency_delta_minutes }}</small>
