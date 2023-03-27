@@ -30,16 +30,22 @@ class ProjectSerializer(serpy.Serializer):
     github_url = serpy.Field()
     config = serpy.Field()
     owner_id = serpy.Field()
+    pipelines = serpy.MethodField()
 
     def to_value(self, instance):
         data = super().to_value(instance)
         data['owner_id'] = instance.owner.id
         return data
 
+    def get_pipelines(self, obj):
+        pipelines = obj.pipeline_set.all()
+        return BigPipelineSerializer(pipelines, many=True).data
+
 
 class BigPipelineSerializer(serpy.Serializer):
     id = serpy.Field()
     slug = serpy.Field()
+    name = serpy.MethodField()
     color = serpy.MethodField()
     status = serpy.Field()
     frequency_delta_minutes = serpy.Field()
@@ -47,7 +53,7 @@ class BigPipelineSerializer(serpy.Serializer):
     ended_at = serpy.Field()
     created_at = serpy.Field()
     updated_at = serpy.Field()
-
+    duration = serpy.MethodField()
     def get_color(self, obj):
         colors = {
             'OPERATIONAL': 'bg-success',
@@ -56,3 +62,11 @@ class BigPipelineSerializer(serpy.Serializer):
             'CRITICAL' : 'bg-danger'
         }
         return colors[obj.status]
+    def get_name(self, obj):
+        name = obj.slug.replace('_', ' ').capitalize()
+        return name
+    def get_duration(self, obj):
+        if obj.ended_at is None or obj.started_at is None:
+            return None
+        duration = obj.ended_at - obj.started_at
+        return duration.total_seconds()

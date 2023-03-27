@@ -66,18 +66,18 @@
         <section >
             <h2>Pipelines</h2>
             <hr>
-            {% for pipeline in pipelines %}
+            {% for pipeline in project.pipelines %}
         <article>
             <div>
-                <h2>{{ pipeline.slug }}</h2>
-                <button class="{{pipeline.color}}">{{ pipeline.status }}</button>
+                <h2>{{ pipeline.name }}</h2>
+                <button class="{{ pipeline.color }}">{{ pipeline.status }}</button>
             </div>
             <div>
                 <small>Runs every: {{ pipeline.frequency_delta_minutes }}</small>
                 <div>
                     {% if pipeline.started_at %}
                     <small>Last run: {{ pipeline.started_at|timesince }} ago</small><br>
-                    <small>Duration:{{ pipeline.duration }} minutes</small>
+                    <small>Duration:{{ pipeline.duration }} seconds</small>
                     {% endif %}                            
                 </div>
             </div>

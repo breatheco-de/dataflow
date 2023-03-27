@@ -94,12 +94,9 @@ def get_project_details(request, project_id):
     if project is None:
         raise ValidationException('Project not found', code=404)
 
-    pipelines = project.pipeline_set.all()
-    pipeline_serializer = BigPipelineSerializer(pipelines, many=True)
     project_serializer = ProjectSerializer(project)
     serialized_data = {
         "project": project_serializer.data,
-        "pipelines": pipeline_serializer.data
     }
 
     return render(request, 'project.html', serialized_data)
