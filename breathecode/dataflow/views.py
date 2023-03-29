@@ -8,12 +8,12 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from django.utils import timezone
-from .models import Pipeline, PipelineExecution, Transformation
+from .models import Pipeline, PipelineExecution, Transformation, Project
 from breathecode.utils import ValidationException
-from .serializers import ExecutionSerializer
+from .serializers import ExecutionSerializer, PipelineSerializer, BigPipelineSerializer, ProjectSerializer
 from .tasks import async_run_pipeline
 import pandas as pd
-
+from django.http import JsonResponse
 logger = logging.getLogger(__name__)
 
 
@@ -85,3 +85,18 @@ def get_execution_buffer(request, execution_id=None):
     except Exception as e:
         logger.error(e)
         raise ValidationException(str(e))
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_project_details(request, project_id):
+    project = Project.objects.filter(id=project_id).first()
+    if project is None:
+        raise ValidationException('Project not found', code=404)
+
+    project_serializer = ProjectSerializer(project)
+    serialized_data = {
+        "project": project_serializer.data,
+    }
+
+    return render(request, 'project.html', serialized_data)
