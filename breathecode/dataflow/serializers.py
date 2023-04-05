@@ -25,7 +25,7 @@ class ExecutionSerializer(serpy.Serializer):
 class ProjectSerializer(serpy.Serializer):
     id = serpy.Field()
     title = serpy.Field()
-    status = serpy.MethodField()
+    # status = serpy.MethodField()
     slug = serpy.Field()
     branch_name = serpy.Field()
     description = serpy.Field()
@@ -37,18 +37,18 @@ class ProjectSerializer(serpy.Serializer):
     def get_pipelines(self, obj):
         pipelines = obj.pipeline_set.all()
         return BigPipelineSerializer(pipelines, many=True).data
-    def get_status(self, obj):
-        critical_pipelines = obj.pipeline_set.filter(status='CRITICAL').all()
-        loading_pipelines = obj.pipeline_set.filter(status='LOADING').all()
-        minor_pipelines = obj.pipeline_set.filter(status='MINOR').all()
-        operational_pipelines = obj.pipeline_set.filter(status='OPERATIONAL').all()
-        status = {
-            len(critical_pipelines): 'Critical',
-            len(loading_pipelines): 'Loading',
-            len(minor_pipelines): 'Minor',
-            len(operational_pipelines): 'Operational',
-        }
-        return status[max(status.keys())]
+    # def get_status(self, obj):
+    #     critical_pipelines = obj.pipeline_set.filter(status='CRITICAL').all()
+    #     loading_pipelines = obj.pipeline_set.filter(status='LOADING').all()
+    #     minor_pipelines = obj.pipeline_set.filter(status='MINOR').all()
+    #     operational_pipelines = obj.pipeline_set.filter(status='OPERATIONAL').all()
+    #     status = {
+    #         len(critical_pipelines): 'Critical',
+    #         len(loading_pipelines): 'Loading',
+    #         len(minor_pipelines): 'Minor',
+    #         len(operational_pipelines): 'Operational',
+    #     }
+    #     return status[max(status.keys())]
         
 
 class BigPipelineSerializer(serpy.Serializer):
