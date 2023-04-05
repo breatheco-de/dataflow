@@ -11,6 +11,11 @@
 </head>
 <body>
     <style>
+        * {
+            box-sizing: border-box;
+            padding: 0;
+            margin: 0;
+        }
         body{
             padding: 10px 50px;
             font-family: "Helvetica Neue",Helvetica;
@@ -24,13 +29,8 @@
             justify-content: space-between;
             align-items: center;
         }
-        article {
-            margin-top: 10px
-        }
-        article > div {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .container > div > h1 {
+            margin-bottom: 10px
         }
         .bg-success {
             background-color: #219653;
@@ -55,11 +55,16 @@
             border: 1px black solid;
             cursor: pointer;
         }
+        .pipeline-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
         
     
     </style>
     <div class="container">
-        <div><h1>Project: {{ project.title }}</h1><div><button class="bg-success">Operational</button><span id="run-project"><svg width="12" height="14" viewBox="0 0 18 23" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <div><h1>Project: {{ project.title }}</h1><div>Run project<span id="run-project"><svg width="12" height="14" viewBox="0 0 18 23" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M17.0523 9.72364L2.90901 0.782205C1.75987 0.0560625 0 0.760722 0 2.55674V20.4353C0 22.0466 1.63531 23.0176 2.90901 22.2099L17.0523 13.2727C18.3139 12.4778 18.3179 10.5185 17.0523 9.72364Z" fill="black"/>
             </svg>
         </span></div></div>
@@ -67,17 +72,19 @@
             <h2>Pipelines</h2>
             <hr>
             {% for pipeline in project.pipelines %}
-        <article>
+        <article class="pipeline-container">
             <div>
                 <h2>{{ pipeline.name }}</h2>
-                <button class="{{ pipeline.color }}">{{ pipeline.status }}</button>
-            </div>
-            <div>
                 <small>Runs every: {{ pipeline.frequency_delta_minutes }}</small>
+                
+            </div>
+            <div class="">
+                
                 <div>
+                    <button class="{{ pipeline.color }}">{{ pipeline.status }}</button>
                     {% if pipeline.started_at %}
-                    <small>Last run: {{ pipeline.started_at|timesince }} ago</small><br>
-                    <small>Duration:{{ pipeline.duration }} seconds</small>
+                    <div><small>Last run: {{ pipeline.started_at|timesince }} ago</small><br>
+                        <small>Duration:{{ pipeline.duration }} seconds</small></div>
                     {% endif %}                            
                 </div>
             </div>
