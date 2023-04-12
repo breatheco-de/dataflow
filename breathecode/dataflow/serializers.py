@@ -2,6 +2,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 import serpy
 from django.utils import timezone
+from .models import PipelineExecution
 
 
 class PipelineSerializer(serpy.Serializer):
@@ -24,6 +25,7 @@ class ExecutionSerializer(serpy.Serializer):
 class ProjectSerializer(serpy.Serializer):
     id = serpy.Field()
     title = serpy.Field()
+    # status = serpy.MethodField()
     slug = serpy.Field()
     branch_name = serpy.Field()
     description = serpy.Field()
@@ -32,22 +34,29 @@ class ProjectSerializer(serpy.Serializer):
     owner_id = serpy.Field()
     pipelines = serpy.MethodField()
 
-    def to_value(self, instance):
-        data = super().to_value(instance)
-        data['owner_id'] = instance.owner.id
-        return data
-
     def get_pipelines(self, obj):
         pipelines = obj.pipeline_set.all()
         return BigPipelineSerializer(pipelines, many=True).data
-
+    # def get_status(self, obj):
+    #     critical_pipelines = obj.pipeline_set.filter(status='CRITICAL').all()
+    #     loading_pipelines = obj.pipeline_set.filter(status='LOADING').all()
+    #     minor_pipelines = obj.pipeline_set.filter(status='MINOR').all()
+    #     operational_pipelines = obj.pipeline_set.filter(status='OPERATIONAL').all()
+    #     status = {
+    #         len(critical_pipelines): 'Critical',
+    #         len(loading_pipelines): 'Loading',
+    #         len(minor_pipelines): 'Minor',
+    #         len(operational_pipelines): 'Operational',
+    #     }
+    #     return status[max(status.keys())]
+        
 
 class BigPipelineSerializer(serpy.Serializer):
     id = serpy.Field()
     slug = serpy.Field()
     name = serpy.MethodField()
     color = serpy.MethodField()
-    status = serpy.Field()
+    status = serpy.MethodField()
     frequency_delta_minutes = serpy.Field()
     started_at = serpy.Field()
     ended_at = serpy.Field()
@@ -61,7 +70,10 @@ class BigPipelineSerializer(serpy.Serializer):
             'MINOR' :'bg-minor',
             'CRITICAL' : 'bg-danger'
         }
-        return colors[obj.status]
+        last_execution = PipelineExecution.objects.filter(pipeline=obj).order_by('-id').first()
+        if last_execution is None:
+            return colors['LOADING']
+        return colors[last_execution.status]
     def get_name(self, obj):
         name = obj.slug.replace('_', ' ').capitalize()
         return name
@@ -70,3 +82,8 @@ class BigPipelineSerializer(serpy.Serializer):
             return None
         duration = obj.ended_at - obj.started_at
         return duration.total_seconds()
+    def get_status(self, obj):
+        last_execution = PipelineExecution.objects.filter(pipeline=obj).order_by('-id').first()
+        if last_execution is None:
+            return 'LOADING'
+        return last_execution.status

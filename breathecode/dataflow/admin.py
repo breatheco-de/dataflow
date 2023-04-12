@@ -63,8 +63,13 @@ class DataSourceAdmin(admin.ModelAdmin):
 
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
-    list_display = ('id','slug', 'description', 'owner', 'last_pull')
     # actions = [run_single_script]
+    def go_to_dashboard(self, obj):
+        return format_html(
+            f"<a href='/v1/project/{obj.id}'>Go to dashboard</span>"
+        )
+    go_to_dashboard.short_description = 'Dashboard'
+    list_display = ('id','slug', 'description', 'owner', 'last_pull', 'go_to_dashboard')
     list_filter = ['slug']
     actions = [pull_github_project]
 
