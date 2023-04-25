@@ -37,18 +37,7 @@ class ProjectSerializer(serpy.Serializer):
     def get_pipelines(self, obj):
         pipelines = obj.pipeline_set.all()
         return BigPipelineSerializer(pipelines, many=True).data
-    # def get_status(self, obj):
-    #     critical_pipelines = obj.pipeline_set.filter(status='CRITICAL').all()
-    #     loading_pipelines = obj.pipeline_set.filter(status='LOADING').all()
-    #     minor_pipelines = obj.pipeline_set.filter(status='MINOR').all()
-    #     operational_pipelines = obj.pipeline_set.filter(status='OPERATIONAL').all()
-    #     status = {
-    #         len(critical_pipelines): 'Critical',
-    #         len(loading_pipelines): 'Loading',
-    #         len(minor_pipelines): 'Minor',
-    #         len(operational_pipelines): 'Operational',
-    #     }
-    #     return status[max(status.keys())]
+
         
 
 class BigPipelineSerializer(serpy.Serializer):
@@ -81,7 +70,7 @@ class BigPipelineSerializer(serpy.Serializer):
         if obj.ended_at is None or obj.started_at is None:
             return None
         duration = obj.ended_at - obj.started_at
-        return duration.total_seconds()
+        return round(duration.total_seconds(), 2)
     def get_status(self, obj):
         last_execution = PipelineExecution.objects.filter(pipeline=obj).order_by('-id').first()
         if last_execution is None:
