@@ -56,19 +56,34 @@
             cursor: pointer;
         }
         .pipeline-container {
-            display: flex;
-            justify-content: space-between;
+            display: grid;
+            grid-template-columns: 1fr 160px;
             margin-top: 10px;
         }
         
+        .pipeline-container > div:last-child {
+            display: flex;
+            flex-direction: column;
+        }
+        .pipeline-container > div:last-child > button {
+            width: 100px;
+        }
+        #project-id {
+            display: none;
+        }
+        #run-project {
+            margin-right: 50px;
+        }
     
     </style>
+    <span id="project-id">{{ project.id }}</span>
     <div class="container">
         <div><h1>Project: {{ project.title }}</h1><div>Run project<span id="run-project"><svg width="12" height="14" viewBox="0 0 18 23" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M17.0523 9.72364L2.90901 0.782205C1.75987 0.0560625 0 0.760722 0 2.55674V20.4353C0 22.0466 1.63531 23.0176 2.90901 22.2099L17.0523 13.2727C18.3139 12.4778 18.3179 10.5185 17.0523 9.72364Z" fill="black"/>
-            </svg>
-        </span></div></div>
-        <section >
+                <path d="M17.0523 9.72364L2.90901 0.782205C1.75987 0.0560625 0 0.760722 0 2.55674V20.4353C0 22.0466 1.63531 23.0176 2.90901 22.2099L17.0523 13.2727C18.3139 12.4778 18.3179 10.5185 17.0523 9.72364Z" fill="black"/>
+                </svg>
+            </span></div>
+        </div>
+        <section>
             <h2>Pipelines</h2>
             <hr>
             {% for pipeline in project.pipelines %}
@@ -76,29 +91,25 @@
             <div>
                 <h2>{{ pipeline.name }}</h2>
                 <small>Runs every: {{ pipeline.frequency_delta_minutes }}</small>
-                
             </div>
             <div class="">
-                
-                <div>
                     <button class="{{ pipeline.color }}">{{ pipeline.status }}</button>
                     {% if pipeline.started_at %}
                     <div><small>Last run: {{ pipeline.started_at|timesince }} ago</small><br>
                         <small>Duration:{{ pipeline.duration }} seconds</small></div>
                     {% endif %}                            
-                </div>
             </div>
         </article>
         {% endfor %}
         </section>
     </div>
-    <!-- <pre class="container"><code class="language-python">{{ code }}</code></pre> -->
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.27.0/prism.min.js" integrity="sha512-/Swpp6aCQ0smuZ+zpklJqMClcUlvxhpLf9aAcM7JjJrj2waCU4dikm3biOtMVAflOOeniW9qzaNXNrbOAOWFCw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.27.0/plugins/autoloader/prism-autoloader.min.js" integrity="sha512-GP4x8UWxWyh4BMbyJGOGneiTbkrWEF5izsVJByzVLodP8CuJH/n936+yQDMJJrOPUHLgyPbLiGw2rXmdvGdXHA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script>
         const runProject = () => {
-            const project_id = 2; // replace with the actual project ID
-            fetch(`/v1/project/${project_id}/run`, {
+            const projectId = document.getElementById('project-id').innerText
+      
+            fetch(`/v1/project/${projectId}/run`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -106,7 +117,7 @@
             })
             .then(response => response.json())
             .then(data => {
-                console.log(data);
+                location.reload()
             })
             .catch(error => {
                 console.log(error);
