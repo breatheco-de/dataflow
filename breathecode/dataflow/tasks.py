@@ -1,4 +1,5 @@
-import logging, sys, traceback, json
+import logging, sys, traceback, json, time
+import psutil
 from django.utils import timezone
 from celery import shared_task, Task
 from google.cloud.exceptions import NotFound
@@ -17,7 +18,19 @@ class BaseTaskWithRetry(Task):
     #                                              15 minutes retry
     retry_kwargs = {'max_retries': 2, 'countdown': 60 * 15}
     retry_backoff = True
+    
+    start_time = time.time()
+    start_memory = psutil.virtual_memory().used
 
+    def __init__(self):
+        self.start_time = time.time()
+        self.start_memory = psutil.virtual_memory().used
+
+    def log_time_and_memory(self):
+        elapsed_time = time.time() - self.start_time
+        current_memory = psutil.virtual_memory().used
+        memory_diff = current_memory - self.start_memory
+        logger.debug(f"Elapsed time: {elapsed_time}s, Memory used: {memory_diff / (1024.0 ** 2)} MB")
 
 def run_transformation(transformation, execution):
 
@@ -101,6 +114,7 @@ output.to_csv('{execution.buffer_url()}', index=False)\n
 def async_run_transformation(self, execution_id, transformations):
     logger.debug(f'Starting async_run_transformation with {len(transformations)} transformations pending')
 
+    self.log_time_and_memory()
     execution = PipelineExecution.objects.filter(id=execution_id).first()
     if execution is None:
         raise Exception(f'Execution with id {execution_id} not found')
@@ -168,6 +182,7 @@ def async_run_transformation(self, execution_id, transformations):
 
     pipeline.save()
     execution.save()
+    self.log_time_and_memory()
 
     return True
 
@@ -223,11 +238,11 @@ def async_run_pipeline(self, pipeline_slug, execution_id=None):
 
 @shared_task(bind=True, base=BaseTaskWithRetry)
 def async_backup_buffer(self, execution_id, position=0):
-
     execution = PipelineExecution.objects.filter(id=execution_id).first()
     if execution is None:
         raise Exception(f'Execution {execution_id} not found')
 
     execution.backup_buffer(position)
 
+    self.log_time_and_memory()
     return True
