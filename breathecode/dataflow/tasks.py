@@ -30,7 +30,7 @@ class BaseTaskWithRetry(Task):
         elapsed_time = time.time() - self.start_time
         current_memory = psutil.virtual_memory().used
         memory_diff = current_memory - self.start_memory
-        logger.debug(f"Elapsed time: {elapsed_time}s, Memory used: {memory_diff / (1024.0 ** 2)} MB")
+        logger.info(f"Elapsed time: {elapsed_time}s, Memory used: {memory_diff / (1024.0 ** 2)} MB")
 
 def run_transformation(transformation, execution):
 
