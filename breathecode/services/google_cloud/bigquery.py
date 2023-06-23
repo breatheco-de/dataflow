@@ -65,11 +65,18 @@ class BigQuery:
     def get_dataframe_from_table(self, entity_name):
 
         if len(entity_name) > 7 and "select " == entity_name[0:7].lower():
+            # Append a limit clause to the SQL query
+            entity_name = f"{entity_name} LIMIT 50000"
             query_job = self.client.query(entity_name)  # SQL Query
-            return query_job.to_dataframe()
+            df = query_job.to_dataframe()
         else:
             table = self.client.dataset(self.dataset).table(entity_name)
-            return self.client.list_rows(table).to_dataframe()
+            # Get the last 50000 rows
+            total_rows = self.client.get_table(table).num_rows
+            rows_to_skip = max(0, total_rows - 50000)
+            df = self.client.list_rows(table, start_index=rows_to_skip).to_dataframe()
+            
+        return df
 
     def save_dataframe_to_table(self, df, entity_name, replace=False, quoted_newlines=True):
 
