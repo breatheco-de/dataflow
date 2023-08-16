@@ -63,6 +63,26 @@ def pull_project_from_github(project):
     config = project.get_config()
     for pipeline in config['pipelines']:
         pipelineObject = Pipeline.objects.filter(slug=pipeline['slug'], project__slug=project.slug).first()
+
+
+
+        if 'destination' not in pipeline or pipeline['destination'] == "" or not isinstance(pipeline['destination'], str):
+            raise Exception(
+                f'Pipeline is has invalid or missing destination property with the slug of the DataSource that will be used to save the pipeline output'
+            )
+        destination = DataSource.objects.filter(slug=pipeline['destination'].strip()).first()
+        if destination is None:
+            raise Exception(
+                f"Destination DataSource with slug {pipeline['destination']} not found on the database but was specified on the pipeline YML"
+            )
+
+        if pipelineObject is not None:
+            other_pipeline_using_same_destination = Pipeline.objects.filter(source_to=destination).first()
+            if other_pipeline_using_same_destination is not None and other_pipeline_using_same_destination.id != pipelineObject.id:
+                raise Exception(
+                    f"Another pipeline is already using destination datasource {destination.slug}"
+                )
+        
         if pipelineObject is None:
             pipelineObject = Pipeline(
                 slug=pipeline['slug'],
@@ -86,22 +106,6 @@ def pull_project_from_github(project):
                     f"Source with slug '{s}' not found on the database but was specified on the YML")
 
             pipelineObject.source_from.add(source)
-
-        if 'destination' not in pipeline or pipeline['destination'] == "" or not isinstance(pipeline['destination'], str):
-            raise Exception(
-                f'Pipeline is has invalid or missing destination property with the slug of the DataSource that will be used to save the pipeline output'
-            )
-        destination = DataSource.objects.filter(slug=pipeline['destination'].strip()).first()
-        if destination is None:
-            raise Exception(
-                f"Destination DataSource with slug {pipeline['destination']} not found on the database but was specified on the pipeline YML"
-            )
-
-        other_pipeline_using_same_destination = Pipeline.objects.filter(source_to=destination).first()
-        if other_pipeline_using_same_destination is not None:
-            raise Exception(
-                f"Another pipeline is already using destination datasource {destination.slug}"
-            )
             
         pipelineObject.source_to = destination
         pipelineObject.save()
