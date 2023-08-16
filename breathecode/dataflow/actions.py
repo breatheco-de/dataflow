@@ -96,6 +96,13 @@ def pull_project_from_github(project):
             raise Exception(
                 f"Destination DataSource with slug {pipeline['destination']} not found on the database but was specified on the pipeline YML"
             )
+
+        other_pipeline_using_same_destination = Pipeline.objects.filter(source_to=destination).first()
+        if other_pipeline_using_same_destination is not None:
+            raise Exception(
+                f"Another pipeline is already using destination datasource {destination.slug}"
+            )
+            
         pipelineObject.source_to = destination
         pipelineObject.save()
 
