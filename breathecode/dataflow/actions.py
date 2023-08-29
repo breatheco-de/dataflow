@@ -64,8 +64,6 @@ def pull_project_from_github(project):
     for pipeline in config['pipelines']:
         pipelineObject = Pipeline.objects.filter(slug=pipeline['slug'], project__slug=project.slug).first()
 
-
-
         if 'destination' not in pipeline or pipeline['destination'] == "" or not isinstance(pipeline['destination'], str):
             raise Exception(
                 f'Pipeline is has invalid or missing destination property with the slug of the DataSource that will be used to save the pipeline output'

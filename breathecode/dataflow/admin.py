@@ -79,7 +79,7 @@ def execute_async(modeladmin, request, queryset):
 
     for p in pipelines:
         try:
-            async_run_pipeline.delay(p.slug)
+            async_run_pipeline.delay(p.slug, p.project.slug)
         except Exception as e:
             logger.exception(e)
             messages.add_message(request, messages.ERROR, str(e))

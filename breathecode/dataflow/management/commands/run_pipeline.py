@@ -23,11 +23,12 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         now = timezone.now()
-        pipelines = Pipeline.objects\
-                    .filter(Q(started_at__isnull=True) | Q(started_at__lte= now - F('frequency_delta_minutes')))\
-                    .exclude(paused_until__isnull=False, paused_until__gte=now).values_list('slug', flat=True)
+        pipelines = Pipeline.objects \
+                .filter(Q(started_at__isnull=True) | Q(started_at__lte=now - F('frequency_delta_minutes'))) \
+                .exclude(paused_until__isnull=False, paused_until__gte=now).values_list('slug', 'project__slug')
 
-        for slug in pipelines:
-            async_run_pipeline.delay(slug)
-
+        for slug, project_slug in pipelines:
+                async_run_pipeline.delay(slug, project_slug)
+                
         self.stdout.write(self.style.SUCCESS(f'Enqueued {len(pipelines)} scripts for execution'))
+
