@@ -64,8 +64,6 @@ def pull_project_from_github(project):
     for pipeline in config['pipelines']:
         pipelineObject = Pipeline.objects.filter(slug=pipeline['slug'], project__slug=project.slug).first()
 
-
-
         if 'destination' not in pipeline or pipeline['destination'] == "" or not isinstance(pipeline['destination'], str):
             raise Exception(
                 f'Pipeline is has invalid or missing destination property with the slug of the DataSource that will be used to save the pipeline output'
@@ -75,12 +73,18 @@ def pull_project_from_github(project):
             raise Exception(
                 f"Destination DataSource with slug {pipeline['destination']} not found on the database but was specified on the pipeline YML"
             )
+        
+        # Checking if another pipeline uses the same source_to
+        other_pipeline_using_same_destination = Pipeline.objects.filter(source_to=destination).first()
 
-        if pipelineObject is not None:
-            other_pipeline_using_same_destination = Pipeline.objects.filter(source_to=destination).first()
-            if other_pipeline_using_same_destination is not None and other_pipeline_using_same_destination.id != pipelineObject.id:
+        if other_pipeline_using_same_destination is not None:
+            if pipelineObject is not None and other_pipeline_using_same_destination.id != pipelineObject.id:
                 raise Exception(
-                    f"Another pipeline is already using destination datasource {destination.slug}"
+                    f"Another pipeline {other_pipeline_using_same_destination.slug} is already using destination datasource {destination.slug}"
+                )
+            else:
+                raise Exception(
+                    f"Another pipeline {other_pipeline_using_same_destination.slug} is already using destination datasource {destination.slug}"
                 )
         
         if pipelineObject is None:

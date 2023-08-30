@@ -188,9 +188,15 @@ def async_run_transformation(self, execution_id, transformations):
 
 
 @shared_task(bind=True, base=BaseTaskWithRetry)
-def async_run_pipeline(self, pipeline_slug, execution_id=None):
+def async_run_pipeline(self, pipeline_slug,project_slug, execution_id=None):
+    # Get the project
+    project = Project.objects.filter(slug=project_slug).first()
+    if project is None:
+        raise Exception(f'Project {project_slug} not found')
+        
+    # Get the pipeline
+    pipeline = Pipeline.objects.filter(slug=pipeline_slug, project=project).first()
 
-    pipeline = Pipeline.objects.filter(slug=pipeline_slug).first()
     if pipeline is None:
         raise Exception(f'Pipeline {pipeline_slug} not found')
 

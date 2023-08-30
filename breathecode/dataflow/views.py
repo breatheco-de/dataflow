@@ -29,7 +29,7 @@ def process_stream(request, pipeline_slug):
     execution.started_at = timezone.now()
     execution.save()  #save to get an id
 
-    async_run_pipeline.delay(pipeline.slug, execution_id=execution.id)
+    async_run_pipeline.delay(pipeline.slug,pipeline.project.slug, execution_id=execution.id)
 
     return Response(ExecutionSerializer(execution).data)
 
