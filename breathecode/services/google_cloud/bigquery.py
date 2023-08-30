@@ -65,13 +65,13 @@ class BigQuery:
     def get_dataframe_from_table(self, entity_name):
 
         if len(entity_name) > 7 and "select " == entity_name[0:7].lower():
-            logger.debug("Datasource will be interpreted as a query")
+            print("Datasource will be interpreted as a query")
             # Append a limit clause to the SQL query
             entity_name = f"{entity_name} LIMIT 50000"
             query_job = self.client.query(entity_name)  # SQL Query
             df = query_job.to_dataframe()
         else:
-            logger.debug("Datasource will be interpreted as a tablename")
+            print("Datasource will be interpreted as a tablename")
             table = self.client.dataset(self.dataset).table(entity_name)
             # Get the last 50000 rows
             total_rows = self.client.get_table(table).num_rows
