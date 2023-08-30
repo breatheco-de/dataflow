@@ -3,7 +3,7 @@ import psutil
 from django.utils import timezone
 from celery import shared_task, Task
 from google.cloud.exceptions import NotFound
-from .models import Transformation, PipelineExecution, Pipeline
+from .models import Transformation, PipelineExecution, Pipeline, Project
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
