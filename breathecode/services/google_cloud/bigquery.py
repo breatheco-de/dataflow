@@ -20,6 +20,10 @@ def is_select_statement(s):
     pattern = re.compile(r'\bSELECT\b', re.IGNORECASE)
     return bool(pattern.search(s))
 
+def is_limit_statement(s):
+    pattern = re.compile(r'\bLIMIT\b', re.IGNORECASE)
+    return bool(pattern.search(s))
+
 class BigQueryError(Exception):
     '''Exception raised whenever a BigQuery error happened'''
 
@@ -68,8 +72,11 @@ class BigQuery:
     def get_dataframe_from_table(self, entity_name):
 
         if len(entity_name) > 7 and is_select_statement(entity_name[0:7]):
-            # Append a limit clause to the SQL query
-            entity_name = f"{entity_name} LIMIT 50000"
+        
+            if not is_limit_statement(entity_name):
+                # Append a limit clause to the SQL query
+                entity_name = f"{entity_name} LIMIT 50000"
+    
             query_job = self.client.query(entity_name)  # SQL Query
             df = query_job.to_dataframe()
         else:
