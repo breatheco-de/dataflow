@@ -1,10 +1,14 @@
 import os
+import re
 import psycopg2 as pg
 import pandas.io.sql as psql
 import pandas as pd
 from breathecode.services.google_cloud.storage import Storage
 
-
+def is_select_statement(s):
+    pattern = re.compile(r'\bSELECT\b', re.IGNORECASE)
+    return bool(pattern.search(s))
+    
 class PipelineException(Exception):
     pipeline_slug = None
     failed_transformation = None
@@ -29,7 +33,7 @@ class HerokuDB(object):
 
     def get_dataframe_from_table(self, entity_name):
 
-        if len(entity_name) > 7 and "select " == entity_name[0:7].lower():
+        if len(entity_name) > 7 and is_select_statement(entity_name[0:7]):
             query = entity_name # its probably some SQL query instead of an entity name
             df = psql.read_sql(query, self.connection)
             return df
