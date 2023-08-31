@@ -77,7 +77,7 @@ def pull_project_from_github(project):
         # Checking if another pipeline uses the same source_to
         other_pipeline_using_same_destination = Pipeline.objects.filter(source_to=destination)
         if pipelineObject is not None:
-            other_pipeline_using_same_destination.exclude(id=pipelineObject.id)
+            other_pipeline_using_same_destination = other_pipeline_using_same_destination.exclude(id=pipelineObject.id)
         other_pipeline_using_same_destination = other_pipeline_using_same_destination.first()
 
         if other_pipeline_using_same_destination is not None:
