@@ -80,7 +80,7 @@ def pull_project_from_github(project):
         if other_pipeline_using_same_destination is not None:
             if pipelineObject is not None and other_pipeline_using_same_destination.id != pipelineObject.id:
                 raise Exception(
-                    f"Another pipeline {other_pipeline_using_same_destination.slug} is already using destination datasource {destination.slug}"
+                    f"Another pipeline {other_pipeline_using_same_destination.slug} is already using destination datasource {destination.slug}, this pipeline is {pipelineObject.slug}"
                 )
             else:
                 raise Exception(
