@@ -2,7 +2,7 @@ import json
 import logging
 import os
 import traceback
-import os
+import re
 from datetime import datetime
 from .credentials import resolve_credentials
 from .storage import Storage
@@ -16,6 +16,9 @@ logger = logging.getLogger(__name__)
 def now():
     return datetime.utcnow().replace(tzinfo=pytz.utc).strftime('%Y-%m-%d %H:%M:%S %Z')
 
+def is_select_statement(s):
+    pattern = re.compile(r'\bSELECT\b', re.IGNORECASE)
+    return bool(pattern.search(s))
 
 class BigQueryError(Exception):
     '''Exception raised whenever a BigQuery error happened'''
@@ -64,14 +67,12 @@ class BigQuery:
 
     def get_dataframe_from_table(self, entity_name):
 
-        if len(entity_name) > 7 and "select " == entity_name[0:7].lower():
-            print("Datasource will be interpreted as a query", entity_name[0:7].lower())
+        if len(entity_name) > 7 and is_select_statement(entity_name[0:7]):
             # Append a limit clause to the SQL query
             entity_name = f"{entity_name} LIMIT 50000"
             query_job = self.client.query(entity_name)  # SQL Query
             df = query_job.to_dataframe()
         else:
-            print("Datasource will be interpreted as a tablename", entity_name[0:7].lower())
             table = self.client.dataset(self.dataset).table(entity_name)
             # Get the last 50000 rows
             total_rows = self.client.get_table(table).num_rows
