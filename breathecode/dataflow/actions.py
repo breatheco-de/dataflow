@@ -122,7 +122,7 @@ def pull_project_from_github(project):
                     f'Transformation file pipelines/{pipeline["slug"]}/{t.split(".")[0]}.py not found')
 
             transObject = Transformation.objects.filter(slug=t.split('.')[0],
-                                                        pipeline__slug=pipelineObject.slug).first()
+                                                        pipeline__id=pipelineObject.id).first()
             if transObject is None:
                 transObject = Transformation(
                     slug=t.split('.')[0],
