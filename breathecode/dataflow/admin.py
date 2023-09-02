@@ -146,7 +146,7 @@ class TransformationAdmin(admin.ModelAdmin):
         return format_html(f"<span class='badge {colors[obj.status]}'>{obj.status}</span>")
 
     def script(self, obj):
-        return format_html(f"<a target='_blank' href='/v1/transformation/{obj.slug}/code'>view code</span>")
+        return format_html(f"<a target='_blank' href='/v1/transformation/{obj.id}/code'>view code</span>")
 
 
 
