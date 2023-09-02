@@ -6,7 +6,7 @@ app_name = 'dataflow'
 urlpatterns = [
     path('stream/<slug:pipeline_slug>', process_stream),
     path('execution/<int:execution_id>/buffer', get_execution_buffer),
-    path('transformation/<slug:transformation_slug>/code', get_transformation_code),
+    path('transformation/<slug:transformation_id>/code', get_transformation_code),
     path('project/<int:project_id>/run', run_project),
     path('project/<int:project_id>/', get_project_details),
 ]
