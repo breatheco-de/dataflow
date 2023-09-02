@@ -36,9 +36,9 @@ def process_stream(request, pipeline_slug):
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
-def get_transformation_code(request, transformation_slug):
+def get_transformation_code(request, transformation_id):
 
-    transformation = Transformation.objects.filter(slug=transformation_slug).first()
+    transformation = Transformation.objects.filter(id=transformation_id).first()
     if transformation is None:
         raise ValidationException('Transformation not found', code=404)
 
