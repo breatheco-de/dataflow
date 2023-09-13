@@ -71,7 +71,7 @@ class BigQuery:
 
     def get_dataframe_from_table(self, entity_name):
 
-        if len(entity_name) > 7 and is_select_statement(entity_name[0:7]):
+        if len(entity_name) > 7 and is_select_statement(entity_name):
         
             if not is_limit_statement(entity_name):
                 # Append a limit clause to the SQL query
