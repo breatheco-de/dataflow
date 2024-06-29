@@ -57,7 +57,7 @@ def run_project(request, project_id):
     pipelines = Pipeline.objects.filter(project__id=project_id)
     for p in pipelines:
         try:
-            async_run_pipeline.delay(p.slug)
+            async_run_pipeline.delay(p.slug, p.project.slug)
         except Exception as e:
             raise ValidationException(str(e))
     
