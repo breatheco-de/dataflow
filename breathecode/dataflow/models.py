@@ -232,7 +232,7 @@ class PipelineExecution(models.Model):
         if not os.path.exists("./buffer"):
             raise Exception('Directory "buffer" does not exists')
         result = df.to_csv(self.buffer_url(position), index=False)
-        print("saved buffer")
+        print("Buffer saved succesfully at position %s" % position)
 
     def backup_buffer(self, position=0):
         from breathecode.services.google_cloud.storage import Storage
@@ -242,9 +242,7 @@ class PipelineExecution(models.Model):
 
         buffer_url = self.buffer_url(position)
         if not os.path.isfile(buffer_url):
-            raise Exception(
-                "Execution buffer not found for position %s" % position
-            )
+            raise Exception("Execution buffer not found for position %s" % position)
 
         if not os.path.exists("./buffer"):
             raise Exception('Directory "buffer" does not exists')

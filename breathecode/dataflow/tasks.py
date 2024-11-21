@@ -257,11 +257,6 @@ def async_run_pipeline(self, pipeline_slug, project_slug, execution_id=None):
             # Print the shape of the dataframe
             print(f"Buffer shape: {df.shape}")
 
-            # Save the buffer to the execution
-            async_save_buffer.delay(
-                execution.id, df, position=pipe["sources"].index(source_from.slug)
-            )
-            print("Buffer saved correctly for current source")
             execution.save_buffer_df(
                 df, position=pipe["sources"].index(source_from.slug)
             )
