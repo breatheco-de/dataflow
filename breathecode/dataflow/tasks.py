@@ -106,9 +106,9 @@ output = run(*dfs[:len(args_spect.args) - len(kwargs.keys())], **kwargs)
 print('Ended transformation {transformation.slug}: output -> '+str(output.shape))
 output.to_csv('{execution.buffer_url()}', index=False)\n
 """
-            logger.debug(f"Executing transformation {transformation.slug}...")
+            logger.info(f"Executing transformation {transformation.slug}...")
             exec(content, input_vars)
-            logger.debug(f"Finalizing transformation {transformation.slug} execution.")
+            logger.info(f"Finalizing transformation {transformation.slug} execution.")
             transformation.status_code = 0
             transformation.status = "OPERATIONAL"
             transformation.stdout = s.getvalue()
@@ -133,7 +133,7 @@ output.to_csv('{execution.buffer_url()}', index=False)\n
 
 @shared_task(bind=True, base=BaseTaskWithRetry)
 def async_run_transformation(self, execution_id, transformations):
-    logger.debug(
+    print(
         f"Starting async_run_transformation with {len(transformations)} transformations pending"
     )
 
@@ -146,7 +146,6 @@ def async_run_transformation(self, execution_id, transformations):
     if len(transformations) == 0:
         return True
 
-    # avoid concatenation with None down below
     if execution.stdout is None:
         execution.stdout = ""
 
@@ -170,7 +169,7 @@ def async_run_transformation(self, execution_id, transformations):
     execution.ended_at = timezone.now()
     execution.save()
 
-    logger.debug(f"{len(transformations)} transformations left to run...")
+    logger.info(f"{len(transformations)} transformations left to run...")
     if len(transformations) == 0 and t.status == "OPERATIONAL":
         # no more transformations to apply, save in the database
         logger.debug(
@@ -188,7 +187,7 @@ def async_run_transformation(self, execution_id, transformations):
             )
             pipeline.status = "OPERATIONAL"
             execution.status = "OPERATIONAL"
-            execution.stdout += f"Saved to database {pipeline.source_to.title}"
+            execution.stdout += f"Saved to database {pipeline.source_to.title} in table: {pipeline.destination_table_name()}"
 
         except NotFound as e:
             logger.debug(f"Error saving buffer for pipeline {pipeline.slug}")
