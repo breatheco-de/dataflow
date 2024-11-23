@@ -251,8 +251,9 @@ class PipelineExecution(models.Model):
         print("Saving to ", bucket_name, backup_path)
 
         file = storage.file(bucket_name, backup_path)
+        print("Starting backup for ")
         file.upload(from_filename=buffer_url)
-
+        print("Backup saved successfully at position %s" % position)
         return True
 
     def get_buffer_backup(self):
