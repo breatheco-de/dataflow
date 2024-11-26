@@ -68,7 +68,7 @@ class DataSourceForm(forms.ModelForm):
 @admin.register(DataSource)
 class DataSourceAdmin(admin.ModelAdmin):
     form = DataSourceForm
-    list_display = ("slug", "title", "source_type", "table_name")
+    list_display = ("slug", "title","connection_string", "source_type", "table_name")
     # actions = [run_single_script]
     list_filter = ["title"]
     actions = [download_sample_data, 'download_all_data']
