@@ -24,11 +24,14 @@ def pull_github_project(modeladmin, request, queryset):
             logger.exception(e)
             messages.add_message(request, messages.ERROR, str(e))
 
-def download_sample_data(self, request, queryset):
+
+def download_sample_data(self, request, queryset, all=False):
 
     sources = queryset.all()
     if sources.count() != 1:
-        messages.add_message(request, messages.ERROR, "Please choose one source to download data from")
+        messages.add_message(
+            request, messages.ERROR, "Please choose one source to download data from"
+        )
         return None
 
     source = sources[0]
@@ -36,11 +39,16 @@ def download_sample_data(self, request, queryset):
     df = driver.get_dataframe_from_table(source.table_name)
     offset = 0
     rows = 300
-    
-    data = df.iloc[offset:offset + rows]
+
+    if all:
+        offset = 0
+        rows = df.shape[0]
+    data = df.iloc[offset : offset + rows]
     csv_data = data.to_csv(index=False)
-    response = HttpResponse(csv_data, content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename="' + str(source.slug) + '.csv"'
+    response = HttpResponse(csv_data, content_type="text/csv")
+    response["Content-Disposition"] = (
+        'attachment; filename="' + str(source.slug) + '.csv"'
+    )
     return response
 
 
@@ -48,29 +56,43 @@ class DataSourceForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(DataSourceForm, self).__init__(*args, **kwargs)
-        self.fields['source_type'] = forms.ChoiceField(
-            choices=[('heroku', 'Heroku'), ('bigquery', 'BigQuery'), ('csv', 'CSV File on datastore')])
+        self.fields["source_type"] = forms.ChoiceField(
+            choices=[
+                ("heroku", "Heroku"),
+                ("bigquery", "BigQuery"),
+                ("csv", "CSV File on datastore"),
+            ]
+        )
 
 
 @admin.register(DataSource)
 class DataSourceAdmin(admin.ModelAdmin):
     form = DataSourceForm
-    list_display = ('slug', 'title', 'source_type', 'table_name')
+    list_display = ("slug", "title", "source_type", "table_name")
     # actions = [run_single_script]
-    list_filter = ['title']
-    actions = [download_sample_data]
+    list_filter = ["title"]
+    actions = [download_sample_data, 'download_all_data']
+
+    def download_all_data(self, request, queryset):
+        download_sample_data(self, request, queryset, all=True)
 
 
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
     # actions = [run_single_script]
     def go_to_dashboard(self, obj):
-        return format_html(
-            f"<a href='/v1/project/{obj.id}'>Go to dashboard</span>"
-        )
-    go_to_dashboard.short_description = 'Dashboard'
-    list_display = ('id','slug', 'description', 'owner', 'last_pull', 'go_to_dashboard')
-    list_filter = ['slug']
+        return format_html(f"<a href='/v1/project/{obj.id}'>Go to dashboard</span>")
+
+    go_to_dashboard.short_description = "Dashboard"
+    list_display = (
+        "id",
+        "slug",
+        "description",
+        "owner",
+        "last_pull",
+        "go_to_dashboard",
+    )
+    list_filter = ["slug"]
     actions = [pull_github_project]
 
 
@@ -100,86 +122,108 @@ def remove_pause(modeladmin, request, queryset):
 @admin.register(Pipeline)
 class PipelineAdmin(admin.ModelAdmin):
     # form = CustomForm
-    list_display = ('slug', 'sources', 'source_to', 'current_status')
+    list_display = ("slug", "sources", "source_to", "current_status")
     actions = [execute_async, pause_for_one_day, pause_for_thirty_days, remove_pause]
-    list_filter = ['status', 'project__title']
+    list_filter = ["status", "project__title"]
 
     # actions=[pull_github_project]
 
     def current_status(self, obj):
         colors = {
-            'OPERATIONAL': 'bg-success',
-            'CRITICAL': 'bg-error',
-            'LOADING': 'bg-warning',
-            'FATAL': 'bg-error',  # important: this status was deprecated and deleted!
-            'MINOR': 'bg-warning',
-            'ABORTED': 'bg-error',
+            "OPERATIONAL": "bg-success",
+            "CRITICAL": "bg-error",
+            "LOADING": "bg-warning",
+            "FATAL": "bg-error",  # important: this status was deprecated and deleted!
+            "MINOR": "bg-warning",
+            "ABORTED": "bg-error",
         }
         now = timezone.now()
         if obj.paused_until is not None and obj.paused_until > now:
             return format_html(f"<span class='badge bc-warning'> ⏸ PAUSED</span>")
 
-        return format_html(f"<span class='badge {colors[obj.status]}'>{obj.status}</span>")
+        return format_html(
+            f"<span class='badge {colors[obj.status]}'>{obj.status}</span>"
+        )
 
     def sources(self, obj):
-        return ', '.join([str(source.slug) + f' ({source.id})' for source in obj.source_from.all()])
+        return ", ".join(
+            [str(source.slug) + f" ({source.id})" for source in obj.source_from.all()]
+        )
 
 
 @admin.register(Transformation)
 class TransformationAdmin(admin.ModelAdmin):
     # form = CustomForm
-    list_display = ('id', 'slug', 'order', 'current_status', 'pipeline', 'last_run', 'last_sync_at', 'script')
+    list_display = (
+        "id",
+        "slug",
+        "order",
+        "current_status",
+        "pipeline",
+        "last_run",
+        "last_sync_at",
+        "script",
+    )
     # actions = [run_single_script]
-    list_filter = ['status', 'pipeline__slug', 'pipeline__project__slug']
+    list_filter = ["status", "pipeline__slug", "pipeline__project__slug"]
 
     # actions=[pull_github_project]
 
     def current_status(self, obj):
         colors = {
-            'OPERATIONAL': 'bg-success',
-            'CRITICAL': 'bg-error',
-            'LOADING': 'bg-warning',
-            'FATAL': 'bg-error',  # important: this status was deprecated and deleted!
-            'MINOR': 'bg-warning',
-            'ABORTED': 'bg-error',
+            "OPERATIONAL": "bg-success",
+            "CRITICAL": "bg-error",
+            "LOADING": "bg-warning",
+            "FATAL": "bg-error",  # important: this status was deprecated and deleted!
+            "MINOR": "bg-warning",
+            "ABORTED": "bg-error",
         }
-        return format_html(f"<span class='badge {colors[obj.status]}'>{obj.status}</span>")
+        return format_html(
+            f"<span class='badge {colors[obj.status]}'>{obj.status}</span>"
+        )
 
     def script(self, obj):
-        return format_html(f"<a target='_blank' href='/v1/transformation/{obj.id}/code'>view code</span>")
-
+        return format_html(
+            f"<a target='_blank' href='/v1/transformation/{obj.id}/code'>view code</span>"
+        )
 
 
 def backup_buffer_to_gcp(modeladmin, request, queryset):
     executions = queryset.all()
     for e in executions:
         try:
-            position = e.pipeline.transformation_set.filter(status='OPERATIONAL').count()
+            position = e.pipeline.transformation_set.filter(
+                status="OPERATIONAL"
+            ).count()
             if position > 0:
-                e.backup_buffer(position-1)
+                e.backup_buffer(position - 1)
         except Exception as e:
             logger.exception(e)
 
+
 def abort_execution(modeladmin, request, queryset):
-    queryset.update(status='ABORTED')
+    queryset.update(status="ABORTED")
+
 
 @admin.register(PipelineExecution)
 class PipelineExecutionAdmin(admin.ModelAdmin):
     # form = CustomForm
-    list_display = ('id', 'pipeline', 'current_status', 'started_at', 'buffer')
-    list_filter = ['status', 'pipeline__slug', 'pipeline__project__slug']
+    list_display = ("id", "pipeline", "current_status", "started_at", "buffer")
+    list_filter = ["status", "pipeline__slug", "pipeline__project__slug"]
     actions = [backup_buffer_to_gcp, abort_execution]
 
     def current_status(self, obj):
         colors = {
-            'OPERATIONAL': 'bg-success',
-            'CRITICAL': 'bg-error',
-            'LOADING': 'bg-warning',
-            'FATAL': 'bg-error',  # important: this status was deprecated and deleted!
-            'MINOR': 'bg-warning',
-            'ABORTED': 'bg-error',
+            "OPERATIONAL": "bg-success",
+            "CRITICAL": "bg-error",
+            "LOADING": "bg-warning",
+            "FATAL": "bg-error",  # important: this status was deprecated and deleted!
+            "MINOR": "bg-warning",
+            "ABORTED": "bg-error",
         }
-        return format_html(f"<span class='badge {colors[obj.status]}'>{obj.status}</span>")
+        return format_html(
+            f"<span class='badge {colors[obj.status]}'>{obj.status}</span>"
+        )
 
     def buffer(self, obj):
         return format_html(
