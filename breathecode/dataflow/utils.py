@@ -36,7 +36,10 @@ class HerokuDB(object):
             connection_string = os.environ.get(connection_string)
         
         # Replace pg.connect with SQLAlchemy create_engine
-        self.connection = create_engine(connection_string)
+        # If the connections start with postgres replace with postgresql
+        print("connections string: ", connection_string)
+        self.connection = create_engine(connection_string.replace("postgres", "postgresql"))
+        # self.connection = create_engine(connection_string)
 
     def get_dataframe_from_table(self, entity_name):
         if len(entity_name) > 7 and is_select_statement(entity_name[0:7]):
