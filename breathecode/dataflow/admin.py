@@ -74,7 +74,7 @@ class DataSourceAdmin(admin.ModelAdmin):
     actions = [download_sample_data, 'download_all_data']
 
     def download_all_data(self, request, queryset):
-        download_sample_data(self, request, queryset, all=True)
+        return download_sample_data(self, request, queryset, all=True)
 
 
 @admin.register(Project)
