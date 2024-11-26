@@ -35,7 +35,7 @@ def download_sample_data(self, request, queryset):
     driver = source.get_source()
     df = driver.get_dataframe_from_table(source.table_name)
     offset = 0
-    rows = 100
+    rows = 300
     
     data = df.iloc[offset:offset + rows]
     csv_data = data.to_csv(index=False)

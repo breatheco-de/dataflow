@@ -5,7 +5,7 @@ import pandas.io.sql as psql
 import pandas as pd
 from breathecode.services.google_cloud.storage import Storage
 
-from sqlalchemy import create_engine, text  
+from sqlalchemy import create_engine, text
 
 
 def is_select_statement(s):
@@ -41,12 +41,11 @@ class HerokuDB(object):
 
         try:
             self.connection = create_engine(connection_string)
-    
+
             with self.connection.connect() as conn:
-                conn.execute(text("SELECT 1"))  
+                conn.execute(text("SELECT 1"))
         except Exception as e:
             raise Exception(f"Failed to create database engine: {str(e)}")
-
 
     def get_dataframe_from_table(self, entity_name):
         if len(entity_name) > 7 and is_select_statement(entity_name[0:7]):
@@ -54,6 +53,8 @@ class HerokuDB(object):
                 entity_name  # it's probably some SQL query instead of an entity name
             )
             print("Executing query: ", query)
+            # Get the row count from the query
+            self.get_row_count(entity_name)
             df = psql.read_sql(query, self.connection)
             print("Buffer obtained from Heroku: ", df.shape)
             return df
@@ -63,6 +64,24 @@ class HerokuDB(object):
             df = psql.read_sql(query, self.connection)
             print("Buffer obtained from Heroku: ", df.shape)
             return df
+
+    def get_row_count(self, entity_name):
+        if len(entity_name) > 7 and is_select_statement(entity_name[0:7]):
+            # If it's a SQL query, count rows from it
+            count_query = f"SELECT COUNT(*) FROM ({entity_name}) AS subquery"
+        else:
+            count_query = f"SELECT COUNT(*) FROM {entity_name}"
+
+        print("Executing count query: ", count_query)
+
+        try:
+            with self.connection.connect() as conn:
+                result = conn.execute(text(count_query))
+                row_count = result.scalar()  # Get the first column of the first row
+                print(f"Row count for {entity_name}: {row_count}")
+                return row_count
+        except Exception as e:
+            raise Exception(f"Failed to count rows for {entity_name}: {str(e)}")
 
 
 class RemoteCSV(object):
