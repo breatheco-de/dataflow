@@ -5,7 +5,7 @@ import pandas.io.sql as psql
 import pandas as pd
 from breathecode.services.google_cloud.storage import Storage
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text  
 
 
 def is_select_statement(s):
@@ -43,9 +43,10 @@ class HerokuDB(object):
             self.connection = create_engine(connection_string)
             # Optionally, test the connection here
             with self.connection.connect() as conn:
-                conn.execute("SELECT 1")  # Simple query to test connection
+                conn.execute(text("SELECT 1"))  # Wrap the string in text()
         except Exception as e:
             raise Exception(f"Failed to create database engine: {str(e)}")
+
 
     def get_dataframe_from_table(self, entity_name):
         if len(entity_name) > 7 and is_select_statement(entity_name[0:7]):
