@@ -5,6 +5,7 @@ import pandas.io.sql as psql
 import pandas as pd
 from breathecode.services.google_cloud.storage import Storage
 
+from sqlalchemy import create_engine
 
 def is_select_statement(s):
     pattern = re.compile(r"\bSELECT\b", re.IGNORECASE)
@@ -22,31 +23,32 @@ class PipelineException(Exception):
         self.stdout = transformation.stdout
 
 
+
 class HerokuDB(object):
     connection = None
 
     def __init__(self, connection_string=None):
-
         if connection_string is None:
             raise Exception(
                 "Missing connection_string while initializing Heroku DB client"
             )
         if "//" not in connection_string:
             connection_string = os.environ.get(connection_string)
-        self.connection = pg.connect(dsn=connection_string)
+        
+        # Replace pg.connect with SQLAlchemy create_engine
+        self.connection = create_engine(connection_string)
 
     def get_dataframe_from_table(self, entity_name):
-
         if len(entity_name) > 7 and is_select_statement(entity_name[0:7]):
-            query = entity_name  # its probably some SQL query instead of an entity name
+            query = entity_name  # it's probably some SQL query instead of an entity name
             print("Executing query: ", query)
             df = psql.read_sql(query, self.connection)
-            # Print the number of rows and columns
             print("Buffer obtained from Heroku: ", df.shape)
             return df
         else:
+            query = f"SELECT * FROM {entity_name}"
             print("Executing query: ", query)
-            df = psql.read_sql(f"SELECT * FROM {entity_name}", self.connection)
+            df = psql.read_sql(query, self.connection)
             print("Buffer obtained from Heroku: ", df.shape)
             return df
 
