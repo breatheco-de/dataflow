@@ -7,6 +7,7 @@ from breathecode.services.google_cloud.storage import Storage
 
 from sqlalchemy import create_engine
 
+
 def is_select_statement(s):
     pattern = re.compile(r"\bSELECT\b", re.IGNORECASE)
     return bool(pattern.search(s))
@@ -23,7 +24,6 @@ class PipelineException(Exception):
         self.stdout = transformation.stdout
 
 
-
 class HerokuDB(object):
     connection = None
 
@@ -32,18 +32,26 @@ class HerokuDB(object):
             raise Exception(
                 "Missing connection_string while initializing Heroku DB client"
             )
+
         if "//" not in connection_string:
             connection_string = os.environ.get(connection_string)
-        
-        # Replace pg.connect with SQLAlchemy create_engine
-        # If the connections start with postgres replace with postgresql
+
+        connection_string = connection_string.replace("postgres", "postgresql")
         print("connections string: ", connection_string)
-        self.connection = create_engine(connection_string.replace("postgres", "postgresql"))
-        # self.connection = create_engine(connection_string)
+
+        try:
+            self.connection = create_engine(connection_string)
+            # Optionally, test the connection here
+            with self.connection.connect() as conn:
+                conn.execute("SELECT 1")  # Simple query to test connection
+        except Exception as e:
+            raise Exception(f"Failed to create database engine: {str(e)}")
 
     def get_dataframe_from_table(self, entity_name):
         if len(entity_name) > 7 and is_select_statement(entity_name[0:7]):
-            query = entity_name  # it's probably some SQL query instead of an entity name
+            query = (
+                entity_name  # it's probably some SQL query instead of an entity name
+            )
             print("Executing query: ", query)
             df = psql.read_sql(query, self.connection)
             print("Buffer obtained from Heroku: ", df.shape)
