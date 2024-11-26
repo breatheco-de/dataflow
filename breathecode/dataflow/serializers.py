@@ -57,7 +57,9 @@ class BigPipelineSerializer(serpy.Serializer):
             'OPERATIONAL': 'bg-success',
             'LOADING':'bg-minor',
             'MINOR' :'bg-minor',
-            'CRITICAL' : 'bg-danger'
+            'CRITICAL' : 'bg-danger',
+            'ABORTED' : 'bg-danger',
+            
         }
         last_execution = PipelineExecution.objects.filter(pipeline=obj).order_by('-id').first()
         if last_execution is None:
