@@ -41,9 +41,9 @@ class HerokuDB(object):
 
         try:
             self.connection = create_engine(connection_string)
-            # Optionally, test the connection here
+    
             with self.connection.connect() as conn:
-                conn.execute(text("SELECT 1"))  # Wrap the string in text()
+                conn.execute(text("SELECT 1"))  
         except Exception as e:
             raise Exception(f"Failed to create database engine: {str(e)}")
 
