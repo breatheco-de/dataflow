@@ -5,7 +5,6 @@ import pandas.io.sql as psql
 import pandas as pd
 from breathecode.services.google_cloud.storage import Storage
 
-from sqlalchemy import create_engine, text
 
 
 def is_select_statement(s):
