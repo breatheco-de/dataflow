@@ -46,7 +46,7 @@ class HerokuDB(object):
             print("Buffer obtained from Heroku: ", df.shape)
             return df
         else:
-            print("Executing query: ", query)
+            print("Fetching all data from table")
             df = psql.read_sql(f"SELECT * FROM {entity_name}", self.connection)
             print("Buffer obtained from Heroku: ", df.shape)
             return df
