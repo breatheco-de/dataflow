@@ -28,60 +28,29 @@ class HerokuDB(object):
     connection = None
 
     def __init__(self, connection_string=None):
+
         if connection_string is None:
             raise Exception(
                 "Missing connection_string while initializing Heroku DB client"
             )
-
         if "//" not in connection_string:
             connection_string = os.environ.get(connection_string)
-
-        connection_string = connection_string.replace("postgres", "postgresql")
-        print("connections string: ", connection_string)
-
-        try:
-            self.connection = create_engine(connection_string)
-
-            with self.connection.connect() as conn:
-                conn.execute(text("SELECT 1"))
-        except Exception as e:
-            raise Exception(f"Failed to create database engine: {str(e)}")
+        self.connection = pg.connect(dsn=connection_string)
 
     def get_dataframe_from_table(self, entity_name):
+
         if len(entity_name) > 7 and is_select_statement(entity_name[0:7]):
-            query = (
-                entity_name  # it's probably some SQL query instead of an entity name
-            )
+            query = entity_name  # its probably some SQL query instead of an entity name
             print("Executing query: ", query)
-            # Get the row count from the query
-            self.get_row_count(entity_name)
             df = psql.read_sql(query, self.connection)
+            # Print the number of rows and columns
             print("Buffer obtained from Heroku: ", df.shape)
             return df
         else:
-            query = f"SELECT * FROM {entity_name}"
             print("Executing query: ", query)
-            df = psql.read_sql(query, self.connection)
+            df = psql.read_sql(f"SELECT * FROM {entity_name}", self.connection)
             print("Buffer obtained from Heroku: ", df.shape)
             return df
-
-    def get_row_count(self, entity_name):
-        if len(entity_name) > 7 and is_select_statement(entity_name[0:7]):
-            # If it's a SQL query, count rows from it
-            count_query = f"SELECT COUNT(*) FROM ({entity_name}) AS subquery"
-        else:
-            count_query = f"SELECT COUNT(*) FROM {entity_name}"
-
-        print("Executing count query: ", count_query)
-
-        try:
-            with self.connection.connect() as conn:
-                result = conn.execute(text(count_query))
-                row_count = result.scalar()  # Get the first column of the first row
-                print(f"Row count for {entity_name}: {row_count}")
-                return row_count
-        except Exception as e:
-            raise Exception(f"Failed to count rows for {entity_name}: {str(e)}")
 
 
 class RemoteCSV(object):
