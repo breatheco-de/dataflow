@@ -16,7 +16,7 @@ class RetryException(Exception):
 class BaseTaskWithRetry(Task):
     autoretry_for = (RetryException,)
     #                                              15 minutes retry
-    retry_kwargs = {"max_retries": 2, "countdown": 60 * 15}
+    retry_kwargs = {"max_retries": 2, "countdown": 60 * 2}
     retry_backoff = True
 
     start_time = time.time()
@@ -130,87 +130,107 @@ output.to_csv('{execution.buffer_url()}', index=False)\n
     )
     return transformation
 
-
 @shared_task(bind=True, base=BaseTaskWithRetry)
 def async_run_transformation(self, execution_id, transformations):
-    print(
-        f"Starting async_run_transformation with {len(transformations)} transformations pending"
-    )
+    try:
+        print(
+            f"Starting async_run_transformation for PipelineExecution({execution_id}) with {len(transformations)} transformations pending"
+        )
 
-    self.log_time_and_memory()
-    execution = PipelineExecution.objects.filter(id=execution_id).first()
-    if execution is None:
-        raise Exception(f"Execution with id {execution_id} not found")
-    pipeline = execution.pipeline
+        self.log_time_and_memory()
+        execution = PipelineExecution.objects.filter(id=execution_id).first()
+        if execution is None:
+            raise Exception(f"Execution with id {execution_id} not found")
+        pipeline = execution.pipeline
 
-    if len(transformations) == 0:
+        if len(transformations) == 0:
+            return True
+
+        if execution.stdout is None:
+            execution.stdout = ""
+
+        if execution.status == "ABORTED":
+            execution.ended_at = timezone.now()
+            execution.stdout += "Aborted by admin user."
+            execution.save()
+            return False
+
+        next = transformations.pop()
+        t = Transformation.objects.filter(pipeline__slug=pipeline.slug, slug=next).first()
+        t = run_transformation(t, execution)
+
+        # update pipeline
+        pipeline.status = t.status
+        pipeline.ended_at = timezone.now()
+
+        # update execution
+        execution.stdout += t.stdout
+        execution.status = t.status
+        execution.ended_at = timezone.now()
+        execution.save()
+
+        logger.info(f"{len(transformations)} transformations left to run...")
+        if len(transformations) == 0 and t.status == "OPERATIONAL":
+            # no more transformations to apply, save in the database
+            logger.debug(
+                f"No more transformations to apply for execution {execution.id}, saving into datasource"
+            )
+            try:
+                logger.debug(f"Saving pipeline {pipeline.slug} buffer to datasource")
+                df = execution.get_buffer_df()
+                TO_DB = t.pipeline.source_to.get_source()
+                TO_DB.save_dataframe_to_table(
+                    df,
+                    pipeline.destination_table_name(),
+                    replace=pipeline.replace_destination_table,
+                    quoted_newlines=pipeline.source_to.quoted_newlines,
+                )
+                pipeline.status = "OPERATIONAL"
+                execution.status = "OPERATIONAL"
+                execution.stdout += f"Saved to database {pipeline.source_to.title} in table: {pipeline.destination_table_name()}"
+
+            except NotFound as e:
+                logger.debug(f"Error saving buffer for pipeline {pipeline.slug}")
+                msg = f"Dataset table not found for {pipeline.source_to.source_type}.{pipeline.source_to.database} -> table: {pipeline.source_to.table_name}"
+                pipeline.status = "CRITICAL"
+
+                execution.stdout += msg
+                execution.status = "CRITICAL"
+
+            except Exception as e:
+                logger.exception(f"Error running pipeline {pipeline.slug}")
+                pipeline.status = "CRITICAL"
+                execution.log_exception(e)
+                execution.status = "CRITICAL"
+
+        elif len(transformations) > 0 and t.status == "OPERATIONAL":
+            async_run_transformation.delay(execution_id, transformations)
+
+        pipeline.save()
+        execution.save()
+        self.log_time_and_memory()
+
         return True
 
-    if execution.stdout is None:
-        execution.stdout = ""
-
-    if execution.status == "ABORTED":
-        execution.ended_at = timezone.now()
-        execution.stdout += "Aborted by admin user."
-        execution.save()
-        return False
-
-    next = transformations.pop()
-    t = Transformation.objects.filter(pipeline__slug=pipeline.slug, slug=next).first()
-    t = run_transformation(t, execution)
-
-    # update pipeline
-    pipeline.status = t.status
-    pipeline.ended_at = timezone.now()
-
-    # update execution
-    execution.stdout += t.stdout
-    execution.status = t.status
-    execution.ended_at = timezone.now()
-    execution.save()
-
-    logger.info(f"{len(transformations)} transformations left to run...")
-    if len(transformations) == 0 and t.status == "OPERATIONAL":
-        # no more transformations to apply, save in the database
-        logger.debug(
-            f"No more transformations to apply for execution {execution.id}, saving into datasource"
-        )
+    except Exception as e:
+        logger.exception(f"async_run_transformation failed for execution_id={execution_id}")
+        # Intenta dejar el pipeline y la ejecución marcados como CRITICAL si es posible
         try:
-            logger.debug(f"Saving pipeline {pipeline.slug} buffer to datasource")
-            df = execution.get_buffer_df()
-            TO_DB = t.pipeline.source_to.get_source()
-            TO_DB.save_dataframe_to_table(
-                df,
-                pipeline.destination_table_name(),
-                replace=pipeline.replace_destination_table,
-                quoted_newlines=pipeline.source_to.quoted_newlines,
-            )
-            pipeline.status = "OPERATIONAL"
-            execution.status = "OPERATIONAL"
-            execution.stdout += f"Saved to database {pipeline.source_to.title} in table: {pipeline.destination_table_name()}"
+            execution = PipelineExecution.objects.filter(id=execution_id).first()
+            if execution:
+                execution.status = "CRITICAL"
+                execution.stdout += f"\nError: {str(e)}"
+                execution.ended_at = timezone.now()
+                execution.save()
+            if execution and hasattr(execution, "pipeline"):
+                pipeline = execution.pipeline
+                pipeline.status = "CRITICAL"
+                pipeline.ended_at = timezone.now()
+                pipeline.save()
+        except Exception as e2:
+            logger.error(f"Error updating execution/pipeline status after failure: {e2}")
+        raise  # Opcional: vuelve a lanzar la excepción para manejo por Celery si quieres reintentos
 
-        except NotFound as e:
-            logger.debug(f"Error saving buffer for pipeline {pipeline.slug}")
-            msg = f"Dataset table not found for {pipeline.source_to.source_type}.{pipeline.source_to.database} -> table: {pipeline.source_to.table_name}"
-            pipeline.status = "CRITICAL"
-
-            execution.stdout += msg
-            execution.status = "CRITICAL"
-
-        except Exception as e:
-            logger.exception(f"Error running pipeline {pipeline.slug}")
-            pipeline.status = "CRITICAL"
-            execution.log_exception(e)
-            execution.status = "CRITICAL"
-
-    elif len(transformations) > 0 and t.status == "OPERATIONAL":
-        async_run_transformation.delay(execution_id, transformations)
-
-    pipeline.save()
-    execution.save()
-    self.log_time_and_memory()
-
-    return True
 
 
 @shared_task(bind=True, base=BaseTaskWithRetry)
